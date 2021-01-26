@@ -1,0 +1,13 @@
+<Node width="800" arrayX="4" name="room" height="600" arrayY="4">
+    <Channel>
+        <Node name="电脑啊啦啦啦" id="0"/>
+    </Channel>
+    <SceneList>
+        <Screen loopInterval="3" cycle="1" name="场景(1)" id="1">
+            <Node h="600" x="0" chid="0" w="800" winid="0" y="0"/>
+        </Screen>
+        <Screen loopInterval="3" cycle="1" name="场景(2)" id="2">
+            <Node h="600" x="800" chid="0" w="800" winid="0" y="600"/>
+        </Screen>
+    </SceneList>
+</Node>
