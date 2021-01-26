@@ -1,0 +1,8 @@
+*.obj
+*.Debug
+*.Release
+moc_*
+*.o
+*.user
+ui_*
+*.exe
