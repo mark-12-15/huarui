@@ -172,6 +172,8 @@ struct sRoom {
     QString switchoffcmd;
     int switchStatus;           // 打开状态
 
+    bool fullMode;
+
     QList<sGroupDisplay> lstGroupDisplay;
 };
 
@@ -452,9 +454,10 @@ public:
     void winup(int gid, int winid);
     void windown(int gid, int winid);
 
+    bool isFullScreenMode();
+
     // 获取配置的类型
     // 0:正常获取
-    bool        _fullScreenMode{true};      // 整屏模式，多屏模式
     bool        m_bIsNetConnect{false};     // 是否是网络通信
     QString     m_qsConnectIPWithoutDLL;    // 如果不使用DLL时，与当前IP通信
     QString     m_qsConnectPortWithoutDLL;  // 如果不使用DLL时，与当前IP通信

@@ -148,15 +148,10 @@ bool BCMWindowScene::Show(bool bConnectServer)
         pServer->load(nGroupDisplayID, m_id);
 
         // 判断是否有关联矩阵，如果有需要联控
-        MainWindow *pMainWindow = BCCommon::Application();
-        QList<int> lstMatrixID = pMainWindow->GetRelationMatrixID( nGroupDisplayID );
-        if ( !lstMatrixID.isEmpty() ) {
-            for (int i = 0; i < lstMatrixID.count(); i++) {
-                int matrixID = lstMatrixID.at( i );
-                BCMMatrix *pMatrix = pMainWindow->GetMMatrix( matrixID );
-                if (NULL != pMatrix) {
-                    pMatrix->Load( m_id );
-                }
+        if (!BCLocalServer::Application()->isFullScreenMode()) {
+            BCMMatrix *pMatrix = BCCommon::Application()->GetMMatrix();
+            if (NULL != pMatrix) {
+                pMatrix->Load( m_id );
             }
         }
     }

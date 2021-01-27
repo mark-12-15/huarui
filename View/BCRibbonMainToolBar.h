@@ -38,6 +38,7 @@ public:
         AUTHORITY,              // 管理员密码
         IMPORTFILE,             // 导入
         EXPORTFILE,             // 导出
+        MATRIXFORMAT,           // 矩阵
 
         DEVICEFORMAT,           // 设备规模
     };

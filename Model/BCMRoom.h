@@ -93,6 +93,8 @@ public:
     QString switchoncmd;
     QString switchoffcmd;
 
+    bool isFullScreeMode{true};
+
     bool m_bSwitchOn;   // 是否打开了开关
 
 private slots:

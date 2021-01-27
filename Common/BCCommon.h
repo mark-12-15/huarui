@@ -42,12 +42,6 @@ public:
 
     static bool g_bDefaultWindowOffset;             // 获取默认窗口时是否有误差
 
-    static int g_nIsContainsMatrix;                 // 是否包含矩阵，1:只有矩阵，0:包含矩阵，-1不包含矩阵
-    //static bool g_bSignalWindowByWidget;            // 信号窗使用画布还是窗口绘制
-
-    static QString g_qsPreviewIP;                   // 预监IP
-    static int g_nPreviewPort;                      // 预监port
-
     static QString g_qsDeviceType2000;              // 设备类型对应名称
     static QString g_qsDeviceType2000A;
     static QString g_qsDeviceType4000;

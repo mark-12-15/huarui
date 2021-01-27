@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>345</width>
-    <height>119</height>
+    <width>333</width>
+    <height>97</height>
    </rect>
   </property>
   <property name="font">
@@ -61,13 +61,13 @@
       <widget class="QLabel" name="lblValue">
        <property name="minimumSize">
         <size>
-         <width>60</width>
+         <width>30</width>
          <height>0</height>
         </size>
        </property>
        <property name="maximumSize">
         <size>
-         <width>60</width>
+         <width>30</width>
          <height>16777215</height>
         </size>
        </property>

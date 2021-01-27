@@ -867,7 +867,7 @@ void BCRoomMainWidget::dropEvent(QDropEvent *e)
 
         // 获得全局对象
         MainWindow *pMainWindow = BCCommon::Application();
-        BCMMatrix *pMatrix = pMainWindow->GetMMatrix( matrixid );
+        BCMMatrix *pMatrix = pMainWindow->GetMMatrix();
         if (NULL != pMatrix) {
             m_pCurrentSignalWindow = GetSignalWindowDisplayItem( e->pos() );
             if (NULL != m_pCurrentSignalWindow) {
@@ -968,23 +968,15 @@ void BCRoomMainWidget::dropEvent(QDropEvent *e)
 
 bool BCRoomMainWidget::IsJointMatrixChannel(int chid)
 {
-    // 如果没有矩阵则直接返回false
-    if (BCCommon::g_nIsContainsMatrix == -1)
+    if (BCLocalServer::Application()->isFullScreenMode())
         return false;
 
-    MainWindow *pMainWindow = BCCommon::Application();
-    QList<BCMMatrix *> lstMatrix = pMainWindow->GetMMatrix();
-    for (int i = 0; i < lstMatrix.count(); i++) {
-        BCMMatrix *pMatrix = lstMatrix.at( i );
-        if (1 != pMatrix->jointWithVP4000)
-            continue;
+    BCMMatrix *pMatrix = BCCommon::Application()->GetMMatrix();
+    if (nullptr == pMatrix)
+        return false;
 
-        for (int j = 0; j < pMatrix->lstOutputNode.count(); j++) {
-            sMatrixNode node = pMatrix->lstOutputNode.at( j );
-            if (chid == node.jointWithVP4000ChannelID)
-                return true;
-        }
-    }
+    if (pMatrix->lstOutputNode.count() > chid)
+        return true;
 
     return false;
 }

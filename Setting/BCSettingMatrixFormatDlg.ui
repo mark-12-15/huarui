@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>456</width>
-    <height>694</height>
+    <width>459</width>
+    <height>610</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -78,7 +78,25 @@
    </item>
    <item>
     <layout class="QGridLayout" name="gridLayout_2">
-     <item row="8" column="0">
+     <item row="6" column="2">
+      <widget class="QLineEdit" name="m_pInCountLineEdit">
+       <property name="font">
+        <font>
+         <family>微软雅黑</family>
+        </font>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QSpinBox" name="m_pStartIDSpinBox">
+       <property name="font">
+        <font>
+         <family>微软雅黑</family>
+        </font>
+       </property>
+      </widget>
+     </item>
+     <item row="7" column="0">
       <widget class="QLabel" name="label_14">
        <property name="font">
         <font>
@@ -90,21 +108,8 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="1">
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Horizontal</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>17</width>
-         <height>19</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="5" column="2">
-      <widget class="QLineEdit" name="m_pLoadLineEdit">
+     <item row="7" column="2">
+      <widget class="QLineEdit" name="m_pOutCountLineEdit">
        <property name="font">
         <font>
          <family>微软雅黑</family>
@@ -112,28 +117,85 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="2">
-      <widget class="QLineEdit" name="m_pSwitchCmdLineEdit">
-       <property name="font">
-        <font>
-         <family>微软雅黑</family>
-        </font>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="0">
-      <widget class="QCheckBox" name="m_pJointCheckBox">
+     <item row="1" column="0">
+      <widget class="QLabel" name="label_3">
        <property name="font">
         <font>
          <family>微软雅黑</family>
         </font>
        </property>
        <property name="text">
-        <string>是否矩阵联控</string>
+        <string>起始通道ID</string>
        </property>
       </widget>
      </item>
-     <item row="3" column="0">
+     <item row="0" column="0">
+      <widget class="QLabel" name="label">
+       <property name="font">
+        <font>
+         <family>微软雅黑</family>
+        </font>
+       </property>
+       <property name="text">
+        <string>名称</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="m_pSaveLabel">
+       <property name="font">
+        <font>
+         <family>微软雅黑</family>
+        </font>
+       </property>
+       <property name="text">
+        <string>保存场景指令(%1:场景ID;如[%1,])</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="2">
+      <widget class="QLineEdit" name="m_pSaveLineEdit">
+       <property name="font">
+        <font>
+         <family>微软雅黑</family>
+        </font>
+       </property>
+      </widget>
+     </item>
+     <item row="6" column="0">
+      <widget class="QLabel" name="label_13">
+       <property name="font">
+        <font>
+         <family>微软雅黑</family>
+        </font>
+       </property>
+       <property name="text">
+        <string>入口数量</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="m_pLoadLabel">
+       <property name="font">
+        <font>
+         <family>微软雅黑</family>
+        </font>
+       </property>
+       <property name="text">
+        <string>调用场景指令(%1:场景ID;如[%1.])</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QLineEdit" name="m_pNameLineEdit">
+       <property name="font">
+        <font>
+         <family>微软雅黑</family>
+        </font>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
       <widget class="QLabel" name="label_2">
        <property name="font">
         <font>
@@ -145,7 +207,7 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="2">
+     <item row="2" column="2">
       <widget class="QComboBox" name="m_pCmdTypeComboBox">
        <property name="font">
         <font>
@@ -164,32 +226,8 @@
        </item>
       </widget>
      </item>
-     <item row="10" column="2">
-      <widget class="QPushButton" name="m_pJointWithVP4000ConfigBtn">
-       <property name="font">
-        <font>
-         <family>微软雅黑</family>
-        </font>
-       </property>
-       <property name="text">
-        <string>级联设置</string>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="0">
-      <widget class="QLabel" name="m_pSaveLabel">
-       <property name="font">
-        <font>
-         <family>微软雅黑</family>
-        </font>
-       </property>
-       <property name="text">
-        <string>保存场景指令(%1:场景ID;如[%1,])</string>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="2">
-      <widget class="QLineEdit" name="m_pInCountLineEdit">
+     <item row="3" column="2">
+      <widget class="QLineEdit" name="m_pSwitchCmdLineEdit">
        <property name="font">
         <font>
          <family>微软雅黑</family>
@@ -197,8 +235,8 @@
        </property>
       </widget>
      </item>
-     <item row="9" column="2">
-      <widget class="QComboBox" name="m_pRoomComboBox">
+     <item row="4" column="2">
+      <widget class="QLineEdit" name="m_pLoadLineEdit">
        <property name="font">
         <font>
          <family>微软雅黑</family>
@@ -206,7 +244,7 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="0">
+     <item row="3" column="0">
       <widget class="QLabel" name="m_pSwitchCmdLabel">
        <property name="font">
         <font>
@@ -218,113 +256,18 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="2">
-      <widget class="QLineEdit" name="m_pNameLineEdit">
-       <property name="font">
-        <font>
-         <family>微软雅黑</family>
-        </font>
+     <item row="0" column="1">
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
        </property>
-      </widget>
-     </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="label">
-       <property name="font">
-        <font>
-         <family>微软雅黑</family>
-        </font>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>17</width>
+         <height>19</height>
+        </size>
        </property>
-       <property name="text">
-        <string>名称</string>
-       </property>
-      </widget>
-     </item>
-     <item row="9" column="0">
-      <widget class="QCheckBox" name="m_pJointSceneCheckBox">
-       <property name="font">
-        <font>
-         <family>微软雅黑</family>
-        </font>
-       </property>
-       <property name="text">
-        <string>场景联控</string>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="m_pLoadLabel">
-       <property name="font">
-        <font>
-         <family>微软雅黑</family>
-        </font>
-       </property>
-       <property name="text">
-        <string>调用场景指令(%1:场景ID;如[%1.])</string>
-       </property>
-      </widget>
-     </item>
-     <item row="10" column="0">
-      <widget class="QCheckBox" name="m_pJointWithVP4000CheckBox">
-       <property name="font">
-        <font>
-         <family>微软雅黑</family>
-        </font>
-       </property>
-       <property name="text">
-        <string>级联</string>
-       </property>
-      </widget>
-     </item>
-     <item row="7" column="0">
-      <widget class="QLabel" name="label_13">
-       <property name="font">
-        <font>
-         <family>微软雅黑</family>
-        </font>
-       </property>
-       <property name="text">
-        <string>入口数量</string>
-       </property>
-      </widget>
-     </item>
-     <item row="8" column="2">
-      <widget class="QLineEdit" name="m_pOutCountLineEdit">
-       <property name="font">
-        <font>
-         <family>微软雅黑</family>
-        </font>
-       </property>
-      </widget>
-     </item>
-     <item row="6" column="2">
-      <widget class="QLineEdit" name="m_pSaveLineEdit">
-       <property name="font">
-        <font>
-         <family>微软雅黑</family>
-        </font>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_3">
-       <property name="font">
-        <font>
-         <family>微软雅黑</family>
-        </font>
-       </property>
-       <property name="text">
-        <string>起始通道ID</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="2">
-      <widget class="QSpinBox" name="m_pStartIDSpinBox">
-       <property name="font">
-        <font>
-         <family>微软雅黑</family>
-        </font>
-       </property>
-      </widget>
+      </spacer>
      </item>
     </layout>
    </item>
@@ -816,6 +759,16 @@
      </item>
     </layout>
    </item>
+   <item>
+    <widget class="QLabel" name="label_4">
+     <property name="styleSheet">
+      <string notr="true">color: rgb(255, 0, 0);</string>
+     </property>
+     <property name="text">
+      <string>当前版本只允许添加一个矩阵设备！</string>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <tabstops>
@@ -828,10 +781,6 @@
   <tabstop>m_pSaveLineEdit</tabstop>
   <tabstop>m_pInCountLineEdit</tabstop>
   <tabstop>m_pOutCountLineEdit</tabstop>
-  <tabstop>m_pJointSceneCheckBox</tabstop>
-  <tabstop>m_pRoomComboBox</tabstop>
-  <tabstop>m_pJointWithVP4000CheckBox</tabstop>
-  <tabstop>m_pJointWithVP4000ConfigBtn</tabstop>
   <tabstop>m_pUseComConnectRadioBtn</tabstop>
   <tabstop>m_pComComBox</tabstop>
   <tabstop>m_pBaudRateComBox</tabstop>

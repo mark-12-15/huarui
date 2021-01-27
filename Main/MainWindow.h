@@ -154,12 +154,7 @@ public:
 
     // 矩阵
     BCMatrixRoomWidget *GetCurrentMatrixSceneWidget();
-
-    const QList<BCMMatrix *> &GetMMatrix();
-    BCMMatrix *GetMMatrix(int id);
-
-    // 根据房间ID返回对应矩阵ID，如果没有返回-1
-    QList<int> GetRelationMatrixID(int roomid);
+    BCMMatrix *GetMMatrix();
 
     QSize GetWinsizeOffset(int gid);
 
@@ -266,11 +261,6 @@ inline bool MainWindow::IsWindowSceneSetSwitch()
 inline void MainWindow::SetWindowSceneSetSwitch(bool b)
 {
     m_bWindowSceneSetSwitch = b;
-}
-
-inline const QList<BCMMatrix *> &MainWindow::GetMMatrix()
-{
-    return m_lstMatrix;
 }
 
 inline const QList<BCMRoom *> &MainWindow::GetMRooms()

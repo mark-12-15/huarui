@@ -250,25 +250,6 @@ void BCControlTreeWidget::RefreshInputChannelName()
     }
 }
 
-bool BCControlTreeWidget::IsJointMatrixChannel(int chid)
-{
-    MainWindow *pMainWindow = BCCommon::Application();
-    QList<BCMMatrix *> lstMatrix = pMainWindow->GetMMatrix();
-    for (int i = 0; i < lstMatrix.count(); i++) {
-        BCMMatrix *pMatrix = lstMatrix.at( i );
-        if (1 != pMatrix->jointWithVP4000)
-            continue;
-
-        for (int j = 0; j < pMatrix->lstOutputNode.count(); j++) {
-            sMatrixNode node = pMatrix->lstOutputNode.at( j );
-            if (chid == node.jointWithVP4000ChannelID)
-                return true;
-        }
-    }
-
-    return false;
-}
-
 BCMChannel *BCControlTreeWidget::GetCurrentChannel()
 {
     BCControlTreeWidgetItem *pItem = dynamic_cast<BCControlTreeWidgetItem *>( this->currentItem() );
@@ -290,15 +271,7 @@ void BCControlTreeWidget::Refresh(int type, const QList<BCMChannel*> &lstChannel
         if (pMChannel->GetChannelType() != type)
             continue;
 
-        // 如果是联控占用的通道则不显示
-        bool bJoint = false;
-        if (-1 != BCCommon::g_nIsContainsMatrix) {
-            if ( IsJointMatrixChannel(pMChannel->GetChannelID()) )
-                bJoint = true;
-                //continue;
-        }
-
-        this->addTopLevelItem(new BCControlTreeWidgetItem(pMChannel, bJoint, this));
+        this->addTopLevelItem(new BCControlTreeWidgetItem(pMChannel, false, this));
     }
 
     // 如果没有数据则设置为空

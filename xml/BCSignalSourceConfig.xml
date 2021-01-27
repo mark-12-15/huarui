@@ -13,15 +13,15 @@
         <node valid="1" type="9"/>
     </defaultSort>
     <currentSort>
-        <node valid="1" type="0" px="180"/>
-        <node valid="-1" type="1" px="300"/>
-        <node valid="1" type="9" px="300"/>
-        <node valid="1" type="4" px="300"/>
-        <node valid="-1" type="2" px="300"/>
-        <node valid="-1" type="3" px="300"/>
-        <node valid="-1" type="5" px="300"/>
-        <node valid="-1" type="6" px="300"/>
-        <node valid="-1" type="7" px="300"/>
-        <node valid="-1" type="8" px="300"/>
+        <node px="180" valid="1" type="0"/>
+        <node px="300" valid="-1" type="1"/>
+        <node px="300" valid="1" type="9"/>
+        <node px="300" valid="1" type="4"/>
+        <node px="300" valid="-1" type="2"/>
+        <node px="300" valid="-1" type="3"/>
+        <node px="300" valid="-1" type="5"/>
+        <node px="300" valid="-1" type="6"/>
+        <node px="300" valid="-1" type="7"/>
+        <node px="300" valid="-1" type="8"/>
     </currentSort>
 </BR>

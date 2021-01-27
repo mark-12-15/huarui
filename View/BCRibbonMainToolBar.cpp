@@ -42,6 +42,8 @@ void BCRibbonMainToolBar::RefreshMap()
     m_mapMainButtonTypeName.insert(AUTHORITY, ButtonInfo(QObject::tr("管理员密码"), QObject::tr("管理员密码"), QString("lisence32.png")));
     m_mapMainButtonTypeName.insert(IMPORTFILE, ButtonInfo(QObject::tr("导入文件"), QObject::tr("导入文件"), QString("edidin32.png")));
     m_mapMainButtonTypeName.insert(EXPORTFILE, ButtonInfo(QObject::tr("导出文件"), QObject::tr("导出文件"), QString("edidout32.png")));
+    m_mapMainButtonTypeName.insert(DISPLAYSWITCHCONFIG, ButtonInfo(QObject::tr("屏幕开关设置"), QObject::tr("屏幕开关设置"), QString("displayset32.png")));
+    m_mapMainButtonTypeName.insert(MATRIXFORMAT, ButtonInfo(QObject::tr("矩阵设置"), QObject::tr("矩阵设置"), QString("matrix32.png")));
     m_mapMainButtonTypeName.insert(DEVICEFORMAT, ButtonInfo(QObject::tr("设备"), QObject::tr("设备"), QString("runbackground32.png")));
 }
 
@@ -58,6 +60,7 @@ void BCRibbonMainToolBar::Build()
     toolBar1->addAction(new BCRibbonMainToolBarAction(WINDOWSCENELOOP, m_mapMainButtonTypeName.value(WINDOWSCENELOOP), this), Qt::ToolButtonTextUnderIcon);
     toolBar1->addAction(new BCRibbonMainToolBarAction(LIGHTSET, m_mapMainButtonTypeName.value(LIGHTSET), this), Qt::ToolButtonTextUnderIcon);
     toolBar1->addAction(new BCRibbonMainToolBarAction(COLORSET, m_mapMainButtonTypeName.value(COLORSET), this), Qt::ToolButtonTextUnderIcon);
+    toolBar1->addAction(new BCRibbonMainToolBarAction(DISPLAYSWITCH, m_mapMainButtonTypeName.value(DISPLAYSWITCH), this), Qt::ToolButtonTextUnderIcon);
     toolBar1->addAction(new BCRibbonMainToolBarAction(QUIT, m_mapMainButtonTypeName.value(QUIT), this), Qt::ToolButtonTextUnderIcon);
     group1->addControl(toolBar1);
 
@@ -68,6 +71,8 @@ void BCRibbonMainToolBar::Build()
     _toolBar2->addAction(new BCRibbonMainToolBarAction(AUTHORITY, m_mapMainButtonTypeName.value(AUTHORITY), this), Qt::ToolButtonTextUnderIcon);
     _toolBar2->addAction(new BCRibbonMainToolBarAction(IMPORTFILE, m_mapMainButtonTypeName.value(IMPORTFILE), this), Qt::ToolButtonTextUnderIcon);
     _toolBar2->addAction(new BCRibbonMainToolBarAction(EXPORTFILE, m_mapMainButtonTypeName.value(EXPORTFILE), this), Qt::ToolButtonTextUnderIcon);
+    _toolBar2->addAction(new BCRibbonMainToolBarAction(DISPLAYSWITCHCONFIG, m_mapMainButtonTypeName.value(DISPLAYSWITCHCONFIG), this), Qt::ToolButtonTextUnderIcon);
+    _toolBar2->addAction(new BCRibbonMainToolBarAction(MATRIXFORMAT, m_mapMainButtonTypeName.value(MATRIXFORMAT), this), Qt::ToolButtonTextUnderIcon);
     group2->addControl(_toolBar2);
 }
 

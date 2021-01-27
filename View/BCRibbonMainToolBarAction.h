@@ -35,8 +35,6 @@ private slots:
 
     void onSceneSet(bool);
 
-    void onShowDialog(bool);
-
 private:
     void init();
 

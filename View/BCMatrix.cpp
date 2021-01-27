@@ -240,16 +240,10 @@ void BCMatrix::Init()
     ui->m_pTabWidget->clear();
 
     MainWindow *pMainWindow = BCCommon::Application();
-    QList<BCMMatrix *> lstMatrix = pMainWindow->GetMMatrix();
-    for (int i = 0; i < lstMatrix.count(); i++) {
-        BCMMatrix *pMatrix = lstMatrix.at( i );
+    BCMMatrix *pMatrix = pMainWindow->GetMMatrix();
 
-        // 判断是否是级联矩阵
-        if (1 != pMatrix->jointWithVP4000)
-            continue;
-
+    if (pMatrix)
         ui->m_pTabWidget->addTab(new BCMatrixSignalSourceWidget(pMatrix, ui->m_pTabWidget), pMatrix->name);
-    }
 }
 
 void BCMatrix::RefreshSwitch(int roomID, int inID, int outID)

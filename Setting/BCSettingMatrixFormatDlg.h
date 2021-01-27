@@ -37,8 +37,6 @@ public:
     QString switchFlag; // 切换指令表达式，如SW %1 %2...
     QString loadFlag;   // 调取指令，如%1.
     QString saveFlag;   // 保存指令，如%1,
-    int jointSceneRoomID;
-    int jointWithVP4000;            // 是否联控设备，如果联控设备矩阵输出口直接对应设备的输入口
 
     QList<sMatrixNode>  lstInputNode;   // 输入节点
     QList<sMatrixNode>  lstOutputNode;  // 输出节点

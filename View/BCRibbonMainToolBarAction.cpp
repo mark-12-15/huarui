@@ -5,7 +5,6 @@
 #include "../Common/BCCommon.h"
 #include "BCLocationDlg.h"
 #include "BCToolBar.h"
-
 #include "../Setting/BCSettingDisplayInfoDlg.h"
 #include "../View/BCScene.h"
 #include "../View/BCFaceWidget.h"
@@ -24,6 +23,9 @@
 #include "../Setting/BCSettingOutsideInterfaceDlg.h"
 #include "DeviceConnectDlg.h"
 #include "LightSettingDlg.h"
+#include "ColorSettingDlg.h"
+#include "AdminPasswordDlg.h"
+#include <QFileDialog>
 
 BCRibbonMainToolBarAction::BCRibbonMainToolBarAction(BCRibbonMainToolBar::BUTTONTYPE eType, const BCRibbonMainToolBar::ButtonInfo &btn,
                                                      QObject *parent)
@@ -73,8 +75,63 @@ void BCRibbonMainToolBarAction::init()
             dlg->exec();
         });
         break;
-    case BCRibbonMainToolBar::DEVICEFORMAT:
+    case BCRibbonMainToolBar::COLORSET:
+        QObject::connect(this, &QAction::triggered, this, [this] {
+            auto dlg = new ColorSettingDlg(BCCommon::Application());
+            dlg->exec();
+        });
+        break;
     case BCRibbonMainToolBar::DISPLAYSWITCHCONFIG:
+        QObject::connect(this, &QAction::triggered, this, [this] {
+            auto dlg = new BCSettingDisplaySwitchConfigDlg(BCCommon::Application());
+            dlg->exec();
+        });
+        break;
+    case BCRibbonMainToolBar::MATRIXFORMAT:
+        QObject::connect(this, &QAction::triggered, this, [this] {
+            auto dlg = new BCSettingMatrixFormatDlg(BCCommon::Application());
+            dlg->exec();
+        });
+        break;
+    case BCRibbonMainToolBar::AUTHORITY:
+        QObject::connect(this, &QAction::triggered, this, [this] {
+            auto dlg = new AdminPasswordDlg(BCCommon::Application());
+            dlg->exec();
+        });
+        break;
+    case BCRibbonMainToolBar::IMPORTFILE:
+        QObject::connect(this, &QAction::triggered, this, [] {
+            auto fileName = QFileDialog::getOpenFileName(BCCommon::Application(),
+                                                         tr("选择配置文件"),
+                                                         ".",
+                                                         tr("接收卡配置文件(*.rxcfg *.scrcfg)"));
+             if (!fileName.isEmpty()) {
+                 QFile file(fileName);
+                 if (file.open(QIODevice::ReadOnly)) {
+                     auto stream = file.readAll();
+                     file.close();
+
+                     BCLocalServer::Application()->SendCmd(stream);
+                 }
+             }
+        });
+        break;
+    case BCRibbonMainToolBar::EXPORTFILE:
+        QObject::connect(this, &QAction::triggered, this, [] {
+            auto fileName = QFileDialog::getSaveFileName(BCCommon::Application(),
+                                                         tr("保存配置文件"),
+                                                         ".",
+                                                         tr("接收卡配置文件(*.rxcfg *.scrcfg)"));
+            if (!fileName.isEmpty()) {
+                QFile file(fileName);
+                if (file.open(QIODevice::WriteOnly)) {
+                    QDataStream out(&file);
+                    out << QString("markview...");
+                    file.close();
+                }
+            }
+        });
+        break;
     default:
         break;
     }
@@ -170,31 +227,6 @@ void BCRibbonMainToolBarAction::onSceneSet(bool)
     default:
         break;
     }
-}
-
-
-void BCRibbonMainToolBarAction::onShowDialog(bool)
-{
-    // 点击时创建对话框
-    QDialog *pDlg = NULL;
-    switch ( m_eType ) {
-    case BCRibbonMainToolBar::DEVICEFORMAT:
-        //pDlg = new BCSettingDeviceFormatDlg( BCCommon::Application() );
-        break;
-    case BCRibbonMainToolBar::DISPLAYSWITCHCONFIG:
-        pDlg = new BCSettingDisplaySwitchConfigDlg( BCCommon::Application() );
-        break;
-//    case BCRibbonMainToolBar::MATRIXFORMAT:
-//        pDlg = new BCSettingMatrixFormatDlg( BCCommon::Application() );
-//        break;
-    default:
-        break;
-    }
-
-    if (NULL == pDlg)
-        return;
-
-    pDlg->exec();
 }
 
 void BCRibbonMainToolBarAction::RefreshSceneLoop(BCMRoom *pRoom)

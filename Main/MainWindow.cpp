@@ -291,41 +291,25 @@ void MainWindow::ClearRoom()
 
 void MainWindow::InitRoom()
 {
-    // 参数BCCommon::g_nIsContainsMatrix是矩阵标识;1只有矩阵，0拼接和矩阵，-1没有矩阵
-    if (BCCommon::g_nIsContainsMatrix == 1) {
-        // 矩阵
-        if ( m_lstMatrix.isEmpty() )
-            return;
+    // 初始化拼接房间
+    QListIterator<BCMRoom *> itRoom( m_lstRooms );
+    while ( itRoom.hasNext() ) {
+        BCMRoom *pMRoom = itRoom.next();
+        if (NULL == pMRoom)
+            continue;
 
+        // 判断是否是Widget绘制
+        BCRoomWidget *pRoomWidget = new BCRoomWidget(pMRoom, m_pTabWidgetRooms);
+        m_pTabWidgetRooms->addTab(pRoomWidget, pMRoom->GetRoomName());
+    }
+
+    // 初始化矩阵房间
+    if (!BCLocalServer::Application()->isFullScreenMode()) {
         for (int i = 0; i < m_lstMatrix.count(); i++) {
             BCMMatrix *pMatrix = m_lstMatrix.at(i);
+
             BCMatrixRoomWidget *pRoom = new BCMatrixRoomWidget(pMatrix, this);
             m_pTabWidgetRooms->addTab(pRoom, pMatrix->name);
-        }
-    } else {
-        // 初始化拼接房间
-        QListIterator<BCMRoom *> itRoom( m_lstRooms );
-        while ( itRoom.hasNext() ) {
-            BCMRoom *pMRoom = itRoom.next();
-            if (NULL == pMRoom)
-                continue;
-
-            // 判断是否是Widget绘制
-            BCRoomWidget *pRoomWidget = new BCRoomWidget(pMRoom, m_pTabWidgetRooms);
-            m_pTabWidgetRooms->addTab(pRoomWidget, pMRoom->GetRoomName());
-        }
-
-        // 初始化矩阵房间
-        if (BCCommon::g_nIsContainsMatrix == 0) {
-            for (int i = 0; i < m_lstMatrix.count(); i++) {
-                BCMMatrix *pMatrix = m_lstMatrix.at(i);
-                // 级联矩阵不显示
-                if (1 == pMatrix->jointWithVP4000)
-                    continue;
-
-                BCMatrixRoomWidget *pRoom = new BCMatrixRoomWidget(pMatrix, this);
-                m_pTabWidgetRooms->addTab(pRoom, pMatrix->name);
-            }
         }
     }
 
@@ -337,19 +321,17 @@ void MainWindow::RefreshRoomName()
 {
     // 当有拼接时循环BCMRoom
     int nBeginIndex = 0;
-    if (BCCommon::g_nIsContainsMatrix != 1) {
-        for (int i = 0; i < m_lstRooms.count(); i++) {
-            BCMRoom *pRoom = m_lstRooms.at(i);
-            if (NULL == pRoom)
-                continue;
+    for (int i = 0; i < m_lstRooms.count(); i++) {
+        BCMRoom *pRoom = m_lstRooms.at(i);
+        if (NULL == pRoom)
+            continue;
 
-            m_pTabWidgetRooms->setTabText(i, pRoom->GetRoomName());
-        }
-
-        nBeginIndex = m_lstRooms.count();
+        m_pTabWidgetRooms->setTabText(i, pRoom->GetRoomName());
     }
 
-    if (BCCommon::g_nIsContainsMatrix != -1) {
+    nBeginIndex = m_lstRooms.count();
+
+    if (!BCLocalServer::Application()->isFullScreenMode()) {
         for (int i = 0; i < m_lstMatrix.count(); i++) {
             BCMMatrix *pMatrix = m_lstMatrix.at(i);
             m_pTabWidgetRooms->setTabText(i+nBeginIndex, pMatrix->name);
@@ -399,10 +381,6 @@ void MainWindow::RefreshMatrixData()
         pMatrix->loadFlag = smatrix.loadFlag;   // 调取指令，如%1.
         pMatrix->saveFlag = smatrix.saveFlag;   // 保存指令，如%1,
 
-        pMatrix->jointSceneRoomID = smatrix.jointSceneRoomID;           // 是否关联调用场景，关联的拼控调用场景时将调用当前矩阵的场景
-
-        pMatrix->jointWithVP4000 = smatrix.jointWithVP4000;            // 是否联控设备，如果联控设备矩阵输出口直接对应设备的输入口
-
         pMatrix->lstInputNode = smatrix.lstInputNode;   // 输入节点
         pMatrix->lstOutputNode = smatrix.lstOutputNode;  // 输出节点
         pMatrix->lstScene = smatrix.lstScene;       // 场景列表
@@ -446,39 +424,12 @@ BCMatrixRoomWidget *MainWindow::GetMatrixWidgetByID(int id)
 
 BCMatrixRoomWidget *MainWindow::GetCurrentMatrixSceneWidget()
 {
-    BCMatrixRoomWidget *pWidget = dynamic_cast<BCMatrixRoomWidget *>(m_pTabWidgetRooms->currentWidget());
-    if (NULL == pWidget)
-        return NULL;
-
-    // 如果关联拼接了，这里什么都不返回
-    BCMMatrix *pMatrix = pWidget->GetMMatrix();
-    if (-1 != pMatrix->jointSceneRoomID)
-        return NULL;
-
-    return pWidget;
+    return dynamic_cast<BCMatrixRoomWidget *>(m_pTabWidgetRooms->currentWidget());
 }
 
-BCMMatrix *MainWindow::GetMMatrix(int id)
+BCMMatrix *MainWindow::GetMMatrix()
 {
-    for (int i = 0; i < m_lstMatrix.count(); i++) {
-        BCMMatrix *pMatrix = m_lstMatrix.at( i );
-        if (pMatrix->id == id)
-            return pMatrix;
-    }
-
-    return NULL;
-}
-
-QList<int> MainWindow::GetRelationMatrixID(int roomid)
-{
-    QList<int> lst;
-    for (int i = 0; i < m_lstMatrix.count(); i++) {
-        BCMMatrix *pMatrix = m_lstMatrix.at( i );
-        if (roomid == pMatrix->jointSceneRoomID)
-            lst.append( pMatrix->id );
-    }
-
-    return lst;
+    return m_lstMatrix.isEmpty() ? nullptr : m_lstMatrix.first();
 }
 
 void MainWindow::InitToolBars()
@@ -746,14 +697,14 @@ void MainWindow::RefreshStatusBar()
                                                .arg(resSize.width())
                                                .arg(resSize.height())
                                                .arg(m_pSystemUser->loginName)
-                                               .arg(BCLocalServer::Application()->_fullScreenMode ? tr("整屏模式") : tr("多屏模式")));
+                                               .arg(BCLocalServer::Application()->isFullScreenMode() ? tr("整屏模式") : tr("多屏模式")));
             }
         }
     } else {
         this->statusBar()->showMessage(tr("连接状态：%1 | 管理员：%2 | %3")
                                        .arg(BCCommon::g_bConnectStatusOK ? tr("已连接") : tr("未连接"))
                                        .arg(m_pSystemUser->loginName)
-                                       .arg(BCLocalServer::Application()->_fullScreenMode ? tr("整屏模式") : tr("多屏模式")));
+                                       .arg(BCLocalServer::Application()->isFullScreenMode() ? tr("整屏模式") : tr("多屏模式")));
     }
 }
 
@@ -950,7 +901,6 @@ void MainWindow::LoadGenaralConfig()
     int nWallHeigth = docElem.attribute("WallHeightRatio").toInt();
     BCCommon::g_dWallDisplayWidthHeightRatio = 1.0*nWallWidth/nWallHeigth;
     BCCommon::g_nDeviceType = docElem.attribute("DeviceType").toInt();
-    BCCommon::g_nIsContainsMatrix = docElem.attribute("IsContainsMatrix").toInt();
     BCCommon::g_bApplicationDefaultDisplayMode = docElem.attribute("AppDefaultDisplayMode").toInt();
     BCCommon::g_bApplicationNomarlDisplayWidth = docElem.attribute("AppNomarlDisplayWidth").toInt();
     BCCommon::g_bApplicationNomarlDisplayHeight = docElem.attribute("AppNomarlDisplayHeight").toInt();
@@ -1015,6 +965,7 @@ void MainWindow::LoadDataFromLocalServer()
     pRoom->SetType( sroom.type );
     pRoom->SetRoomName( sroom.name );
     pRoom->SetWallSize(sroom.width, sroom.height);
+    pRoom->isFullScreeMode = sroom.fullMode;
 
     // 设置开关指令
     pRoom->SetSwitchConfig(sroom.isNetConnect, sroom.switchip, sroom.switchport, sroom.switchCom, sroom.switchBaudRate, sroom.switchDataBit,
@@ -1144,10 +1095,6 @@ void MainWindow::LoadDataFromLocalServer()
         pMatrix->loadFlag = smatrix.loadFlag;   // 调取指令，如%1.
         pMatrix->saveFlag = smatrix.saveFlag;   // 保存指令，如%1,
 
-        pMatrix->jointSceneRoomID = smatrix.jointSceneRoomID;           // 是否关联调用场景，关联的拼控调用场景时将调用当前矩阵的场景
-
-        pMatrix->jointWithVP4000 = smatrix.jointWithVP4000;            // 是否联控设备，如果联控设备矩阵输出口直接对应设备的输入口
-
         pMatrix->lstInputNode = smatrix.lstInputNode;   // 输入节点
         pMatrix->lstOutputNode = smatrix.lstOutputNode;  // 输出节点
         pMatrix->lstScene = smatrix.lstScene;       // 场景列表
@@ -1240,10 +1187,6 @@ BCMDisplay *MainWindow::GetDisplay(int groupDisplayID, int displayID)
 
 BCMRoom *MainWindow::GetCurrentMRoom()
 {
-    // 如果只显示矩阵则直接返回空
-    if (BCCommon::g_nIsContainsMatrix == 1)
-        return NULL;
-
     int n = m_pTabWidgetRooms->currentIndex();
     if ((m_lstRooms.count() <= 0) || (n < 0) || (n > m_lstRooms.count()-1))
         return NULL;
@@ -1263,12 +1206,9 @@ BCMRoom *MainWindow::GetCurrentSceneMRoom()
         if (m_lstMatrix.count()+m_lstRooms.count() > index) {
             // 找到对应矩阵
             BCMMatrix *pMatrix = m_lstMatrix.at(index-m_lstRooms.count());
-            if (pMatrix->jointSceneRoomID != -1) {
-                for (int i = 0; i < m_lstRooms.count(); i++) {
-                    BCMRoom *pRoom = m_lstRooms.at( i );
-                    if (pRoom->GetRoomID() == pMatrix->jointSceneRoomID)
-                        return pRoom;
-                }
+            for (int i = 0; i < m_lstRooms.count(); i++) {
+                BCMRoom *pRoom = m_lstRooms.at( i );
+                    return pRoom;
             }
         }
     }

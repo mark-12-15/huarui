@@ -131,10 +131,6 @@ int BCCommon::g_nDeviceType = 0;
 bool BCCommon::g_bDefaultWindowOffset = true;
 double BCCommon::g_dWallDisplayWidthHeightRatio = 16.0 / 9.0;
 
-int BCCommon::g_nIsContainsMatrix = -1;
-//bool BCCommon::g_bSignalWindowByWidget = true;
-QString BCCommon::g_qsPreviewIP = "";
-int BCCommon::g_nPreviewPort = 8206;
 QString BCCommon::g_qsDeviceType2000 = "VP2000";
 QString BCCommon::g_qsDeviceType2000A = "VP2000A";
 QString BCCommon::g_qsDeviceType4000 = "VP4000";

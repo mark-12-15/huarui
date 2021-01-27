@@ -6,3 +6,5 @@ moc_*
 *.user
 ui_*
 *.exe
+*.dll
+*.qm

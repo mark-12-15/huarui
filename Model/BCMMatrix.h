@@ -47,10 +47,6 @@ public:
     QString loadFlag;   // 调取指令，如%1.
     QString saveFlag;   // 保存指令，如%1,
 
-    int jointSceneRoomID;           // 是否关联调用场景，关联的拼控调用场景时将调用当前矩阵的场景
-
-    int jointWithVP4000;            // 是否联控设备，如果联控设备矩阵输出口直接对应设备的输入口
-
     QList<sMatrixNode>  lstInputNode;   // 输入节点
     QList<sMatrixNode>  lstOutputNode;  // 输出节点
     QList<sMatrixScene> lstScene;       // 场景列表

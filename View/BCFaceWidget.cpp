@@ -138,11 +138,6 @@ void BCFaceWidget::Refresh(int nReconstruction)
             // pt的x值表示控件的类型，类型具体含义参见类型定义
             MainWindow::SIGNALSOURCETYPE eType = (MainWindow::SIGNALSOURCETYPE)obj.type;
 
-            // 如果是矩阵模式则只显示场景工具条
-            if (BCCommon::g_nIsContainsMatrix == 1)
-                if (eType != MainWindow::WINDOWSCENESIGSRC)
-                    continue;
-
             switch ( eType ) {
             case MainWindow::INPUTCHANNELSSIGSRC: {
                 ui->verticalLayout->addWidget(new BCControl((bool)obj.valid, obj.px));
@@ -164,17 +159,8 @@ void BCFaceWidget::Refresh(int nReconstruction)
                 break;
             case MainWindow::MATRIXPANELSIGSRC: {
                 // 这里判断是否有矩阵联控，有则显示
-                if (-1 != BCCommon::g_nIsContainsMatrix) {
-                    MainWindow *pMainWindow = BCCommon::Application();
-                    QList<BCMMatrix *> lstMatrix = pMainWindow->GetMMatrix();
-                    for (int i = 0; i < lstMatrix.count(); i++) {
-                        BCMMatrix *pMatrix = lstMatrix.at( i );
-                        if (1 != pMatrix->jointWithVP4000)
-                            continue;
-
-                        ui->verticalLayout->addWidget(new BCMatrix((bool)obj.valid, obj.px));
-                        break;
-                    }
+                if (BCCommon::Application()->GetMMatrix()) {
+                    ui->verticalLayout->addWidget(new BCMatrix((bool)obj.valid, obj.px));
                 }
             }
                 break;

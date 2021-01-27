@@ -34,8 +34,6 @@ BCCmdMatrixListWidgetItem::BCCmdMatrixListWidgetItem(int id, QListWidget *parent
     switchFlag = "%1b%2."; // 切换指令表达式，如SW %1 %2...
     loadFlag = "%1.";   // 调取指令，如%1.
     saveFlag = "%1,";   // 保存指令，如%1,
-    jointSceneRoomID = -1;
-    jointWithVP4000 = 0;
 
     this->setTextAlignment(Qt::AlignHCenter); // 对齐方式
     this->setSizeHint (QSize(ICON_SIZE + 20, ICON_SIZE + 20));
@@ -61,33 +59,9 @@ BCSettingMatrixFormatDlg::BCSettingMatrixFormatDlg(QWidget *parent) :
     ui->m_pListWidget->setMovement(QListView::Static);    //设置QListWidget中的单元项不可被拖动
     ui->m_pListWidget->setSpacing(2);                     //设置QListWidget中的单元项的间距
 
-    // 初始化是否级联
-    ui->m_pJointCheckBox->setChecked((-1 != BCCommon::g_nIsContainsMatrix) ? true : false);
+    BCMMatrix *pMatrix = BCCommon::Application()->GetMMatrix();
 
-    MainWindow *pApplication = BCCommon::Application();
-
-    // 权限控制
-    if (pApplication->GetCurrentUser()->level > 1) {
-        ui->m_pJointCheckBox->setVisible( false );
-        ui->m_pSwitchCmdLabel->setVisible( false );
-        ui->m_pSwitchCmdLineEdit->setVisible( false );
-        ui->m_pLoadLabel->setVisible( false );
-        ui->m_pLoadLineEdit->setVisible( false );
-        ui->m_pSaveLabel->setVisible( false );
-        ui->m_pSaveLineEdit->setVisible( false );
-
-        ui->m_pJointSceneCheckBox->setVisible( false );
-        ui->m_pRoomComboBox->setVisible( false );
-        ui->m_pJointWithVP4000CheckBox->setVisible( false );
-        ui->m_pJointWithVP4000ConfigBtn->setVisible( false );
-    }
-
-    QList<BCMMatrix *> lstMatrix = pApplication->GetMMatrix();
-
-    // 初始化list数据
-    for (int i = 0 ; i < lstMatrix.count(); i++) {
-        BCMMatrix *pMatrix = lstMatrix.at(i);
-
+    if (pMatrix) {
         // 新建item
         BCCmdMatrixListWidgetItem *pItem = new BCCmdMatrixListWidgetItem(pMatrix->id, ui->m_pListWidget);
         pItem->SetName( pMatrix->name );
@@ -109,21 +83,12 @@ BCSettingMatrixFormatDlg::BCSettingMatrixFormatDlg(QWidget *parent) :
         pItem->switchFlag = pMatrix->switchFlag; // 切换指令表达式，如SW %1 %2...
         pItem->loadFlag = pMatrix->loadFlag;   // 调取指令，如%1.
         pItem->saveFlag = pMatrix->saveFlag;   // 保存指令，如%1,
-        pItem->jointSceneRoomID = pMatrix->jointSceneRoomID;
-        pItem->jointWithVP4000 = pMatrix->jointWithVP4000;
 
         pItem->lstInputNode = pMatrix->lstInputNode;
         pItem->lstOutputNode = pMatrix->lstOutputNode;
         pItem->lstScene = pMatrix->lstScene;
 
         ui->m_pListWidget->addItem( pItem );
-    }
-
-    // 初始化房间链表
-    QList<BCMRoom *> lstRoom = pApplication->GetMRooms();
-    for (int i = 0; i < lstRoom.count(); i++) {
-        BCMRoom *pRoom = lstRoom.at( i );
-        ui->m_pRoomComboBox->addItem( QString("%1(%2)").arg(pRoom->GetRoomName()).arg(pRoom->GetRoomID()) );
     }
 
     // 初始化COM连接参数
@@ -134,7 +99,7 @@ BCSettingMatrixFormatDlg::BCSettingMatrixFormatDlg(QWidget *parent) :
     }
 
     // 单击列表框动作
-    if ( !lstMatrix.isEmpty() ) {
+    if ( pMatrix ) {
         onCurrentItemChanged(ui->m_pListWidget->item(0), NULL);
         ui->m_pListWidget->setCurrentRow( 0 );
     }
@@ -156,15 +121,6 @@ void BCSettingMatrixFormatDlg::onCurrentItemChanged(QListWidgetItem *current, QL
         pPreItem->switchFlag = ui->m_pSwitchCmdLineEdit->text();
         pPreItem->loadFlag = ui->m_pLoadLineEdit->text();
         pPreItem->saveFlag = ui->m_pSaveLineEdit->text();
-        if ( ui->m_pJointSceneCheckBox->isChecked() ) {
-            QString qsRoomText = ui->m_pRoomComboBox->currentText();
-            QString qsRoomIDText = qsRoomText.right(qsRoomText.count()-qsRoomText.indexOf("(")-1);
-            qsRoomIDText = qsRoomIDText.left( qsRoomIDText.count()-1 );
-            pPreItem->jointSceneRoomID = qsRoomIDText.toInt();
-        } else {
-            pPreItem->jointSceneRoomID = -1;
-        }
-        pPreItem->jointWithVP4000 = ui->m_pJointWithVP4000CheckBox->isChecked() ? 1 : 0;
         pPreItem->isConnectByNet = ui->m_pUseNetConnectRadioBtn->isChecked() ? 1 : 0;
         pPreItem->qsCurrentCom = ui->m_pComComBox->currentText();
         pPreItem->nCurrentBaudRate = ui->m_pBaudRateComBox->currentText().toInt();
@@ -243,20 +199,6 @@ void BCSettingMatrixFormatDlg::onCurrentItemChanged(QListWidgetItem *current, QL
         ui->m_pSaveLineEdit->setText( pCurrentItem->saveFlag );
         ui->m_pInCountLineEdit->setText( QString::number(pCurrentItem->lstInputNode.count()) );
         ui->m_pOutCountLineEdit->setText( QString::number(pCurrentItem->lstOutputNode.count()) );
-        ui->m_pJointSceneCheckBox->setChecked((-1 == pCurrentItem->jointSceneRoomID) ? false : true);
-        if (-1 != pCurrentItem->jointSceneRoomID) {
-            for (int i = 0; i < ui->m_pRoomComboBox->count(); i++) {
-                QString qsRoomText = ui->m_pRoomComboBox->itemText( i );
-                QString qsRoomIDText = qsRoomText.right(qsRoomText.count()-qsRoomText.indexOf("(")-1);
-                if ( !qsRoomIDText.contains(QString::number(pCurrentItem->jointSceneRoomID)) )
-                    continue;
-
-                ui->m_pRoomComboBox->setCurrentIndex( i );
-                break;
-            }
-        }
-
-        ui->m_pJointWithVP4000CheckBox->setChecked((1 == pCurrentItem->jointWithVP4000) ? true : false);
         ui->m_pUseComConnectRadioBtn->setChecked((1 == pCurrentItem->isConnectByNet) ? false : true);
         ui->m_pUseNetConnectRadioBtn->setChecked((1 == pCurrentItem->isConnectByNet) ? true : false);
 
@@ -303,6 +245,9 @@ int BCSettingMatrixFormatDlg::CreateMatrixID()
 
 void BCSettingMatrixFormatDlg::on_m_pAddBtn_clicked()
 {
+    if (ui->m_pListWidget->count() > 0)
+        return;
+
     ui->m_pListWidget->addItem( new BCCmdMatrixListWidgetItem(CreateMatrixID(), ui->m_pListWidget) );
 
     ui->m_pListWidget->setCurrentRow(ui->m_pListWidget->count()-1);
@@ -328,32 +273,6 @@ void BCSettingMatrixFormatDlg::on_m_pCancelBtn_clicked()
 
 void BCSettingMatrixFormatDlg::on_m_pOKBtn_clicked()
 {
-    // 0.保存是否级联矩阵
-    if (1 != BCCommon::g_nIsContainsMatrix) {   // 如果只显示矩阵则勾选无效
-        BCCommon::g_nIsContainsMatrix = ui->m_pJointCheckBox->isChecked() ? 0 : -1;
-        // 将设备类型写入文件
-        QFile file( QString("../xml/BCGenaralConfig.xml") );
-        if (file.open(QIODevice::ReadOnly)) {
-            // 将文件内容读到QDomDocument中
-            QDomDocument doc;
-            bool bLoadFile = doc.setContent(&file);
-            file.close();
-
-            if ( bLoadFile ) {
-                // 二级链表
-                QDomElement docElem = doc.documentElement();
-                docElem.setAttribute("IsContainsMatrix", BCCommon::g_nIsContainsMatrix);
-
-                // 写入文件
-                if ( file.open(QIODevice::WriteOnly | QIODevice::Truncate) ) {
-                    QTextStream out(&file);
-                    doc.save(out,4);
-                    file.close();
-                }
-            }
-        }
-    }
-
     // 1.保存当前房间修改
     onCurrentItemChanged(NULL, ui->m_pListWidget->currentItem());
 
@@ -387,15 +306,9 @@ void BCSettingMatrixFormatDlg::on_m_pOKBtn_clicked()
         smatrix.loadFlag = pItem->loadFlag;   // 调取指令，如%1.
         smatrix.saveFlag = pItem->saveFlag;   // 保存指令，如%1,
 
-        smatrix.jointSceneRoomID = pItem->jointSceneRoomID;           // 是否关联调用场景，关联的拼控调用场景时将调用当前矩阵的场景
-        smatrix.jointWithVP4000 = pItem->jointWithVP4000;
-
         smatrix.lstInputNode = pItem->lstInputNode;   // 输入节点
         smatrix.lstOutputNode = pItem->lstOutputNode;  // 输出节点
 
-//        for (int j = 0; j < pItem->lstOutputNode.count(); j++) {
-//            qDebug() << pItem->lstOutputNode.at( j ).jointWithVP4000ChannelID;
-//        }
         smatrix.lstScene = pItem->lstScene;       // 场景列表
 
         lstMatrix.append( smatrix );

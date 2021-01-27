@@ -91,7 +91,7 @@ void BCLocalServer::InitCommunicationPara()
     QDomElement docElem = doc.documentElement();
 
     //m_bIsNetConnect = docElem.attribute("NetConnect").toInt();
-    _fullScreenMode = docElem.attribute("fullMode") == 1 ? true : false;
+    //_fullScreenMode = docElem.attribute("fullMode") == 1 ? true : false;
     m_qsConnectIPWithoutDLL = docElem.attribute("ConnectIPWithoutDLL");
     m_qsConnectPortWithoutDLL = docElem.attribute("ConnectPortWithoutDLL");
     m_qsCurrentCom = docElem.attribute("CurrentCom");
@@ -120,7 +120,7 @@ void BCLocalServer::SetCommunicationPara()
     // 二级链表
     QDomElement docElem = doc.documentElement();
     //docElem.setAttribute("NetConnect", m_bIsNetConnect ? 1 : 0);
-    docElem.setAttribute("fullMode", _fullScreenMode ? 1 : 0);
+    //docElem.setAttribute("fullMode", _fullScreenMode ? 1 : 0);
     docElem.setAttribute("CurrentCom", m_qsCurrentCom);
     docElem.setAttribute("CurrentBaudRate", m_nCurrentBaudRate);
     docElem.setAttribute("CurrentDataBit", m_nCurrentDataBit);
@@ -466,6 +466,7 @@ sRoom BCLocalServer::GetRoomConfig()
     sroom.switchtype = docElem.attribute("type").toInt();
     sroom.switchoncmd = docElem.attribute("on");
     sroom.switchoffcmd = docElem.attribute("off");
+    sroom.fullMode = docElem.attribute("fullMode").toInt() == 1 ? true : false;
 
     return sroom;
 }
@@ -2007,6 +2008,16 @@ void BCLocalServer::windown(int gid, int winid)
     }
 
     SendCmd( cmd );
+}
+
+bool BCLocalServer::isFullScreenMode()
+{
+    auto room = BCCommon::Application()->GetMRoom(0);
+    if (room) {
+        return room->isFullScreeMode;
+    } else {
+        return true;
+    }
 }
 
 void BCLocalServer::onDelaySendCmd()

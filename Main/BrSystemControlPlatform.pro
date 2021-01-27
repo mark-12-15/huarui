@@ -18,7 +18,10 @@ INCLUDEPATH += $$PWD/../View
 
 
 SOURCES +=\
+    ../Setting/AdminPasswordDlg.cpp \
+    ../Setting/ColorSettingDlg.cpp \
     ../Setting/DeviceConnectDlg.cpp \
+    ../Setting/DeviceFormatDlg.cpp \
     ../Setting/LightSettingDlg.cpp \
         MainWindow.cpp \
     ../Common/BCCommon.cpp \
@@ -103,7 +106,10 @@ HEADERS  += MainWindow.h \
     ../Model/BCMGroupDisplay.h \
     ../Model/BCMGroupScene.h \
     ../Model/BCMWindowScene.h \
+    ../Setting/AdminPasswordDlg.h \
+    ../Setting/ColorSettingDlg.h \
     ../Setting/DeviceConnectDlg.h \
+    ../Setting/DeviceFormatDlg.h \
     ../Setting/LightSettingDlg.h \
     ../View/BCToolBar.h \
     ../View/BCScreenName.h \
@@ -173,7 +179,10 @@ HEADERS  += MainWindow.h \
     ../View/BCLocationGroupWidget.h
 
 FORMS    += \
+    ../Setting/AdminPasswordDlg.ui \
+    ../Setting/ColorSettingDlg.ui \
     ../Setting/DeviceConnectDlg.ui \
+    ../Setting/DeviceFormatDlg.ui \
     ../Setting/LightSettingDlg.ui \
     ../View/BCScreenName.ui \
     ../View/BCScreenDlg.ui \

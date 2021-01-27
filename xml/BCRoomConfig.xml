@@ -1,13 +1,13 @@
-<Node width="800" arrayX="4" name="room" height="600" arrayY="4">
+<Node on="cmdon" checkbit="None" databit="8" width="800" off="cmdoff" stopbit="1" ip="" arrayX="4" type="0" connectByNet="0" com="COM4" name="room" height="600" port="0" stream="None" arrayY="4" rate="57600">
     <Channel>
-        <Node name="电脑啊啦啦啦" id="0"/>
+        <Node id="0" name="电脑1"/>
     </Channel>
     <SceneList>
-        <Screen loopInterval="3" cycle="1" name="场景(1)" id="1">
-            <Node h="600" x="0" chid="0" w="800" winid="0" y="0"/>
+        <Screen id="1" cycle="1" name="场景(1)" loopInterval="3">
+            <Node y="0" h="600" chid="0" winid="0" x="0" w="800"/>
         </Screen>
-        <Screen loopInterval="3" cycle="1" name="场景(2)" id="2">
-            <Node h="600" x="800" chid="0" w="800" winid="0" y="600"/>
+        <Screen id="2" cycle="1" name="场景(2)" loopInterval="3">
+            <Node y="600" h="600" chid="0" winid="0" x="800" w="800"/>
         </Screen>
     </SceneList>
 </Node>

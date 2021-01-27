@@ -41,8 +41,5 @@ private:
     void contextMenuEvent(QContextMenuEvent* event);
 
     void ModifyChannelName(BCControlTreeWidgetItem *pCurrentItem);
-
-    // 判断输入信号是否是联控矩阵使用的信号
-    bool IsJointMatrixChannel(int chid);
 };
 #endif // BCControlTreeWidget_H
