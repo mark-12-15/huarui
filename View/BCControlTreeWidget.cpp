@@ -1,7 +1,6 @@
 ﻿#include "BCControlTreeWidget.h"
 #include <QDebug>
 #include <QDrag>
-#include <QMimeData>
 #include "../Common/BCCommon.h"
 #include "../Common/BCLocalServer.h"
 #include "../Model/BCMGroupDisplay.h"
@@ -185,14 +184,21 @@ void BCControlTreeWidget::mouseDoubleClickEvent(QMouseEvent *)
     if (NULL == pChannel)
         return;
 
-    MainWindow *pApplication = BCCommon::Application();
+    BCRoomWidget *pRoomWidget = BCCommon::Application()->GetCurrentRoomWidget();
 
-    BCRoomWidget *pRoomWidget = pApplication->GetCurrentRoomWidget();
+    // 矩阵房间此处为空
+    if (nullptr == pRoomWidget)
+    {
+        return;
+    }
+
     BCRoomMainWidget *pRoomMainWidget = pRoomWidget->GetRoomMainWidget();
 
-    // 如果是矩阵房间则不允许双击开窗
-    if (4 == pRoomMainWidget->GetMRoom()->GetType())
+    // 整屏模式下只允许一个开窗
+    if (BCLocalServer::Application()->isFullScreenMode() && !pRoomMainWidget->GetSignalWindows().isEmpty())
+    {
         return;
+    }
 
     BCGroupDisplayWidget *pGroupDisplayWidget = pRoomMainWidget->GetCurrentGroupDisplay();
     if (NULL == pGroupDisplayWidget)
@@ -203,13 +209,19 @@ void BCControlTreeWidget::mouseDoubleClickEvent(QMouseEvent *)
         return;
     QRectF rect;
     if ( !pChannel->IsHaveLastRect( pMGroupDisplay ) ) {
-        int ArrangeX = pMGroupDisplay->GetArraySize().width();
-        int ArrangeY = pMGroupDisplay->GetArraySize().height();
-
         rect.setLeft(0);
         rect.setTop(0);
-        rect.setWidth(pMGroupDisplay->GetRect().width() / ArrangeX);
-        rect.setHeight(pMGroupDisplay->GetRect().height()/ ArrangeY);
+
+        if (BCLocalServer::Application()->isFullScreenMode()) {
+            rect.setWidth(pMGroupDisplay->GetRect().width());
+            rect.setHeight(pMGroupDisplay->GetRect().height());
+        } else {
+            int ArrangeX = pMGroupDisplay->GetArraySize().width();
+            int ArrangeY = pMGroupDisplay->GetArraySize().height();
+
+            rect.setWidth(pMGroupDisplay->GetRect().width() / ArrangeX);
+            rect.setHeight(pMGroupDisplay->GetRect().height()/ ArrangeY);
+        }
     } else {
         rect = pChannel->GetChannelLastRect( pMGroupDisplay );
     }
@@ -278,47 +290,6 @@ void BCControlTreeWidget::Refresh(int type, const QList<BCMChannel*> &lstChannel
     if (0 == this->topLevelItemCount()) {
         parent->SetTabVisibleFalse( type );
     }
-}
-
-//拖动
-void BCControlTreeWidget::dragEnterEvent(QDragEnterEvent* event)
-{
-    if (event->mimeData()->hasFormat("inputChannel")) {
-        event->accept();
-    } else {
-        event->ignore();
-    }
-}
-
-// 只能进入一次
-void BCControlTreeWidget::mouseMoveEvent(QMouseEvent *event)
-{
-    if(event->buttons() & Qt::LeftButton) {
-        QList<QString> listdata;
-        // 单选
-        BCControlTreeWidgetItem *pDragItem = dynamic_cast<BCControlTreeWidgetItem*>( this->itemAt( event->pos() ) );
-        if (NULL != pDragItem) {
-            listdata << "0";       //0 类型标识
-            listdata << QString::number(pDragItem->GetMChannel()->GetChannelType());
-            listdata << QString::number(pDragItem->GetMChannel()->GetChannelID());
-        }
-
-        if ( listdata.isEmpty() )
-            return;
-
-        QByteArray exData;
-        QDataStream dataStream(&exData,QIODevice::WriteOnly);
-        dataStream <<listdata;
-
-        QDrag *drag = new QDrag(this);
-        QMimeData *mimeData = new QMimeData();
-        mimeData->setData("inputChannel", exData);
-        drag->setMimeData(mimeData);
-
-        drag->exec(Qt::CopyAction);
-    }
-
-    QTreeWidget::mouseMoveEvent( event );
 }
 
 void BCControlTreeWidget::mouseReleaseEvent(QMouseEvent *event)

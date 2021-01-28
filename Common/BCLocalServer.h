@@ -154,9 +154,6 @@ struct sRoom {
     int type;
     int width;
     int height;
-    int isUseVir;               // 是否使用虚拟分辨率
-    int virWidth;
-    int virHeight;
 
     int isNetConnect;           // 是否是网络通讯
     QString switchip;           // ip

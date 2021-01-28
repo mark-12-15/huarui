@@ -24,7 +24,6 @@
 #include "BCSingleDisplayVirtualWidget.h"
 #include "BCMatrixRoomWidget.h"
 #include "../Model/BCMMatrix.h"
-#include "BCMatrix.h"
 
 //#define JOINTMATRIXTOPTOONE     // 联控时固定将顶层窗口切换成1
 
@@ -114,8 +113,8 @@ BCSignalWindowDisplayWidget *BCRoomMainWidget::AddSignalWindow(int x, int y, int
         return NULL;
 
     // 判断是否允许开窗
-    if ( !pChannel->IsOpenWindowKey(pGroupDisplayWidget->GetMGroupDisplay()->GetGroupDisplayID()) )
-        return NULL;
+//    if ( !pChannel->IsOpenWindowKey(pGroupDisplayWidget->GetMGroupDisplay()->GetGroupDisplayID()) )
+//        return NULL;
 
     // 重新计算winid
     winid = (winid == -1) ? CreateWindowID(pChannel) : winid;
@@ -127,11 +126,6 @@ BCSignalWindowDisplayWidget *BCRoomMainWidget::AddSignalWindow(int x, int y, int
     m_lstSignalWindow.append( pWidget );
     RefreshSignalWindowZValue();
     pChannel->AddSignalWindowDisplayWidget( pWidget );
-
-    // 添加信号窗时候如果已经是全局回显则打开回显开关
-    MainWindow *pApplication = BCCommon::Application();
-
-
 
     return pWidget;
 }
@@ -461,6 +455,11 @@ bool BCRoomMainWidget::SetSignalWindowMoveToBottom(BCSignalWindowDisplayWidget *
 
 BCSignalWindowDisplayWidget *BCRoomMainWidget::OpenSignalWindow(BCGroupDisplayWidget *pSceneGroup, BCMChannel *pChannel)
 {
+    if (BCLocalServer::Application()->isFullScreenMode())
+    {
+        return nullptr;
+    }
+
     // 当前屏组必须不能为空
     if ((NULL == pSceneGroup) || (NULL == pChannel))
         return NULL;
@@ -758,212 +757,6 @@ void BCRoomMainWidget::mouseReleaseEvent(QMouseEvent *e)
     m_pCurrentSignalWindow = NULL;
 
     QWidget::mouseReleaseEvent( e );
-}
-
-//拖拽事件
-void BCRoomMainWidget::dragEnterEvent(QDragEnterEvent* event)
-{
-    bool bInputChannel = event->mimeData()->hasFormat("inputChannel");
-    bool bJointInputChannel = event->mimeData()->hasFormat("jointinputChannel");
-    if (bInputChannel || bJointInputChannel)
-       event->accept();
-    else
-       event->ignore();
-}
-
-void BCRoomMainWidget::dropEvent(QDropEvent *e)
-{
-    if (e->mimeData()->hasFormat("inputChannel")) {
-        // 可用于接收拖拽参数
-        const QMimeData *mimeData = e->mimeData();
-        QByteArray exData = mimeData->data("inputChannel");
-        QDataStream dataStream (&exData, QIODevice::ReadOnly);
-        QList<QString> lstData;
-
-        dataStream >> lstData;
-
-        // 拖拽数据三三成对、依次排列，分别为EchoFlag, ChannelID, chtype...
-        int nInputCount = lstData.count();
-        if ((nInputCount < 3) || (nInputCount%3 != 0))
-            return;
-
-        // 拖拽通道的实际个数
-        nInputCount /= 3;
-
-        // 获得全局对象
-        MainWindow *pMainWindow = BCCommon::Application();
-
-        /* 拖拽原则：
-         * 1.如果拖拽到已开窗口时，替换输入信号，如果拖拽多个则替换成第一个
-         * 2.开窗单元为单屏内矩形；不对已存在窗口进行处理；如果拖拽多个则从拖拽位置依次开窗
-         *
-         * 另：拖拽复用矩形开窗函数OpenSignalWindow；全拼窗口大小取自m_pVirtualRectItem
-         */
-
-        // 判断是否有信号窗
-        m_pCurrentSignalWindow = GetSignalWindowDisplayItem( e->pos() );
-        if (NULL != m_pCurrentSignalWindow) {
-            // 如果拖动到信号窗，需要更换输入信号
-
-            // 根据设备ID和通道ID返回通道对象，无论几个只返回第一个
-            BCMChannel *pChannel = pMainWindow->GetInputChannel(lstData.at(2).toInt(), lstData.at(1).toInt());
-            if (NULL != pChannel) {
-                if (BCCommon::g_nDeviceType == 0) { // VP2000
-                    // 新开窗口
-                    QRect rect = m_pCurrentSignalWindow->GetFactRect();
-                    AddSignalWindow(rect.left(), rect.top(), rect.width(), rect.height(), m_pCurrentSignalWindow->GetGroupDisplay(), pChannel);
-
-                    // 关闭原有窗口
-                    RemoveSignalWindowDisplayItem( m_pCurrentSignalWindow );
-                } else {
-                    // 判断信号窗不是级联时替换信号
-                    if ( !IsJointMatrixChannel(m_pCurrentSignalWindow->GetInputChannel()->GetChannelID()) ) {
-                        m_pCurrentSignalWindow->SetInputChannel( pChannel );
-                    }
-                }
-
-
-            }
-        } else {
-            // 获取屏组
-            m_pCurrentSceneGroup = GetCurrentSceneManager( e->pos() );
-            // 判断数量
-            if (nInputCount >= 1) {
-                // 只有一个的时候满单个显示器开窗
-                BCMChannel *pChannel = pMainWindow->GetInputChannel(lstData.at(2).toInt(), lstData.at(1).toInt());
-                if (NULL == pChannel)
-                    return;
-
-                // 得到当前虚拟矩形框
-                BCSingleDisplayVirtualWidget *pCurrentSingleDisplayRect = dynamic_cast<BCSingleDisplayVirtualWidget *>( this->childAt( e->pos() ) );
-                if (NULL == pCurrentSingleDisplayRect)
-                    return;
-
-                m_pVirtualRectItem->move( pCurrentSingleDisplayRect->mapTo(this, pCurrentSingleDisplayRect->rect().topLeft()) );
-                m_pVirtualRectItem->resize( pCurrentSingleDisplayRect->size() );
-
-                // 开窗
-                m_pCurrentSignalWindow = OpenSignalWindow(m_pCurrentSceneGroup, pChannel);
-            }
-        }
-
-        // 刷新信号窗的文字显示
-        this->RefreshSignalWindowTextDisplay();
-    } else if (e->mimeData()->hasFormat("jointinputChannel")) {
-        // 可用于接收拖拽参数
-        const QMimeData *mimeData = e->mimeData();
-        QByteArray exData = mimeData->data("jointinputChannel");
-        QDataStream dataStream (&exData, QIODevice::ReadOnly);
-        QList<QString> lstData;
-
-        dataStream >> lstData;
-
-        // 拖拽数据为matrixid, matrixintputid
-        if (2 != lstData.count())
-            return;
-
-        int matrixid = lstData.at( 0 ).toInt();
-        int matrixInputid = lstData.at( 1 ).toInt();
-
-        // 获得全局对象
-        MainWindow *pMainWindow = BCCommon::Application();
-        BCMMatrix *pMatrix = pMainWindow->GetMMatrix();
-        if (NULL != pMatrix) {
-            m_pCurrentSignalWindow = GetSignalWindowDisplayItem( e->pos() );
-            if (NULL != m_pCurrentSignalWindow) {
-                for (int i = 0; i < pMatrix->lstOutputNode.count(); i++) {
-                    sMatrixNode node = pMatrix->lstOutputNode.at( i );
-
-                    if (node.jointWithVP4000ChannelID != m_pCurrentSignalWindow->GetInputChannel()->GetChannelID())
-                        continue;
-
-                    //pMatrix->SetSwitch(matrixInputid, node.jointWithVP4000ChannelID+1);   // 切换
-                    pMatrix->SetSwitch(matrixInputid, node.id);   // 切换
-
-                    // 修改信号源侧显示
-                    MainWindow *pApplication = BCCommon::Application();
-                    BCToolBar *pToolBar = pApplication->GetToolBar(MainWindow::SIGNALSOURCETOOLBAR);
-                    if (NULL != pToolBar) {
-                        BCFaceWidget* pFaceWidget = dynamic_cast<BCFaceWidget *>( pToolBar->widget() );
-                        if (NULL != pFaceWidget) {
-                            BCMatrix *pMatrixWidget = dynamic_cast<BCMatrix *>(pFaceWidget->GetWidget(MainWindow::MATRIXPANELSIGSRC));
-                            if (pMatrixWidget != NULL) {
-                                //pMatrixWidget->RefreshSwitch(pMatrix->id, matrixInputid, node.jointWithVP4000ChannelID+1);
-                                pMatrixWidget->RefreshSwitch(pMatrix->id, matrixInputid, node.id);
-                            }
-                        }
-                    }
-                    break;
-                }
-            } else {
-                // 获取屏组
-                m_pCurrentSceneGroup = GetCurrentSceneManager( e->pos() );
-                // 判断是否允许开窗，条件为找到矩阵对应的
-                for (int i = 0; i < pMatrix->lstOutputNode.count(); i++) {
-                    sMatrixNode node = pMatrix->lstOutputNode.at( i );
-                    if (-1 == node.jointWithVP4000ChannelID)
-                        continue;
-
-                    // 根据矩阵关联通道找channel数据类
-                    BCMChannel *pChannel = pMainWindow->GetInputChannel(node.jointWithVP4000ChannelID, node.jointWithVP2000ChannelType);
-                    if (NULL == pChannel)
-                        continue;
-
-                    // 判断数据类关联信号窗个数，如果已经开过窗了则不允许开窗
-                    if (0 != pChannel->GetSignalWindowDisplayWidgetCount())
-                        continue;
-
-                    // 得到当前虚拟矩形框
-                    BCSingleDisplayVirtualWidget *pCurrentSingleDisplayRect = dynamic_cast<BCSingleDisplayVirtualWidget *>( this->childAt( e->pos() ) );
-                    if (NULL == pCurrentSingleDisplayRect)
-                        return;
-
-                    m_pVirtualRectItem->move( pCurrentSingleDisplayRect->mapTo(this, pCurrentSingleDisplayRect->rect().topLeft()) );
-                    m_pVirtualRectItem->resize( pCurrentSingleDisplayRect->size() );
-
-                    // 开窗
-                    //pMatrix->SetSwitch(matrixInputid, node.jointWithVP4000ChannelID+1);   // 切换
-                    pMatrix->SetSwitch(matrixInputid, node.id);   // 切换
-
-                    // 修改信号源侧显示
-                    MainWindow *pApplication = BCCommon::Application();
-                    BCToolBar *pToolBar = pApplication->GetToolBar(MainWindow::SIGNALSOURCETOOLBAR);
-                    if (NULL != pToolBar) {
-                        BCFaceWidget* pFaceWidget = dynamic_cast<BCFaceWidget *>( pToolBar->widget() );
-                        if (NULL != pFaceWidget) {
-                            BCMatrix *pMatrixWidget = dynamic_cast<BCMatrix *>(pFaceWidget->GetWidget(MainWindow::MATRIXPANELSIGSRC));
-                            if (pMatrixWidget != NULL) {
-                                //pMatrixWidget->RefreshSwitch(pMatrix->id, matrixInputid, node.jointWithVP4000ChannelID+1);
-                                pMatrixWidget->RefreshSwitch(pMatrix->id, matrixInputid, node.id);
-                            }
-                        }
-                    }
-
-                    m_pCurrentSignalWindow = OpenSignalWindow(m_pCurrentSceneGroup, pChannel);                   // 开窗
-
-                    break;
-                }
-            }
-        }
-    } else {
-        e->ignore();
-    }
-
-    // 高亮输入通道
-    if (NULL != m_pCurrentSignalWindow) {
-        MainWindow *pApplication = BCCommon::Application();
-        BCToolBar *pToolBar = pApplication->GetToolBar(MainWindow::SIGNALSOURCETOOLBAR);
-        if (NULL != pToolBar) {
-            BCFaceWidget *pSignalSourceWidget = dynamic_cast<BCFaceWidget *>( pToolBar->widget() );
-            if (NULL != pSignalSourceWidget) {
-                BCControl *pInputChannelWidget = dynamic_cast<BCControl *>(pSignalSourceWidget->GetWidget(MainWindow::INPUTCHANNELSSIGSRC));
-                if(NULL != pInputChannelWidget)
-                    pInputChannelWidget->HighLightInputChannel( m_pCurrentSignalWindow->GetInputChannel() );
-            }
-        }
-    }
-
-    QWidget::dropEvent( e );
 }
 
 bool BCRoomMainWidget::IsJointMatrixChannel(int chid)

@@ -49,6 +49,10 @@ void BCRibbonMainToolBar::RefreshMap()
 
 void BCRibbonMainToolBar::Build()
 {
+    if (_init) {
+        return;
+    }
+
     // 常用功能 ： 系统连接，添加场景，删除场景，轮巡设置，停止轮巡，亮度调节，色彩调节，屏幕开关，退出系统
     RibbonPage* page1 = BCCommon::Application()->ribbonBar()->addPage("常用功能");
     Qtitan::RibbonGroup* group1 = page1->addGroup("");
@@ -74,6 +78,8 @@ void BCRibbonMainToolBar::Build()
     _toolBar2->addAction(new BCRibbonMainToolBarAction(DISPLAYSWITCHCONFIG, m_mapMainButtonTypeName.value(DISPLAYSWITCHCONFIG), this), Qt::ToolButtonTextUnderIcon);
     _toolBar2->addAction(new BCRibbonMainToolBarAction(MATRIXFORMAT, m_mapMainButtonTypeName.value(MATRIXFORMAT), this), Qt::ToolButtonTextUnderIcon);
     group2->addControl(_toolBar2);
+
+    _init = true;
 }
 
 void BCRibbonMainToolBar::addDevice()

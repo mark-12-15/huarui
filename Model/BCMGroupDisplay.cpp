@@ -35,3 +35,8 @@ BCMDisplay *BCMGroupDisplay::GetDisplay(int id)
     return NULL;
 }
 
+QMap<int, QRect> BCMGroupDisplay::getDisplayRect(QRect rect)
+{
+    // TODO !!!
+}
+

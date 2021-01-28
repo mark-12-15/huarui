@@ -31,8 +31,8 @@ public:
 private:
     Ui::BCSignalListWidgetData *ui;
 
-    void dragEnterEvent(QDragEnterEvent*);
-    void mousePressEvent(QMouseEvent*);
+//    void dragEnterEvent(QDragEnterEvent*);
+//    void mousePressEvent(QMouseEvent*);
 
     //数据成员变量
     BCMChannel* m_pChannel;

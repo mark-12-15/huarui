@@ -8,7 +8,6 @@
 #include "../Setting/BCSettingDisplayInfoDlg.h"
 #include "../View/BCScene.h"
 #include "../View/BCFaceWidget.h"
-#include "../Setting/BCSettingDisplyModelStyle.h"
 #include "../Setting/BCSettingMainPanelStyle.h"
 #include "../Setting/BCSettingPasswordStyle.h"
 #include "../Setting/BCSettingBoardCardDlg.h"
@@ -25,6 +24,7 @@
 #include "LightSettingDlg.h"
 #include "ColorSettingDlg.h"
 #include "AdminPasswordDlg.h"
+#include "DeviceFormatDlg.h"
 #include <QFileDialog>
 
 BCRibbonMainToolBarAction::BCRibbonMainToolBarAction(BCRibbonMainToolBar::BUTTONTYPE eType, const BCRibbonMainToolBar::ButtonInfo &btn,
@@ -90,6 +90,12 @@ void BCRibbonMainToolBarAction::init()
     case BCRibbonMainToolBar::MATRIXFORMAT:
         QObject::connect(this, &QAction::triggered, this, [this] {
             auto dlg = new BCSettingMatrixFormatDlg(BCCommon::Application());
+            dlg->exec();
+        });
+        break;
+    case BCRibbonMainToolBar::DEVICEFORMAT:
+        QObject::connect(this, &QAction::triggered, this, [this] {
+            auto dlg = new DeviceFormatDlg(BCCommon::Application());
             dlg->exec();
         });
         break;

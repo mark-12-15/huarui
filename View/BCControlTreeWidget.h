@@ -34,8 +34,8 @@ public:
     BCMChannel *GetCurrentChannel();
 
 private:
-    void dragEnterEvent(QDragEnterEvent*);
-    void mouseMoveEvent(QMouseEvent*);
+    //void dragEnterEvent(QDragEnterEvent*);
+    //void mouseMoveEvent(QMouseEvent*);
     void mouseReleaseEvent(QMouseEvent*);
     void mouseDoubleClickEvent(QMouseEvent *);
     void contextMenuEvent(QContextMenuEvent* event);

@@ -52,9 +52,7 @@ public:
     void RefreshInputChannelName();
 
 private:
-    void dragEnterEvent(QDragEnterEvent* event);
     void mouseReleaseEvent(QMouseEvent *event);
-    void mouseMoveEvent(QMouseEvent* event);
     void mouseDoubleClickEvent(QMouseEvent *);
     void contextMenuEvent(QContextMenuEvent* event);
 

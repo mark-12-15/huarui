@@ -98,8 +98,8 @@ protected:
     void mouseReleaseEvent(QMouseEvent *e);
 
     // 拖拽事件
-    void dragEnterEvent(QDragEnterEvent* event);
-    void dropEvent(QDropEvent *e);
+ //   void dragEnterEvent(QDragEnterEvent* event);
+//    void dropEvent(QDropEvent *e);
 
 private:
     // 获得当前选中屏组

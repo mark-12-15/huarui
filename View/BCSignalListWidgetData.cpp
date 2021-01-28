@@ -1,7 +1,6 @@
 ﻿#include "BCSignalListWidgetData.h"
 #include "ui_BCSignalListWidgetData.h"
 #include <QDebug>
-#include <QMimeData>
 #include <QDrag>
 
 #include "BCControl.h"
@@ -60,42 +59,3 @@ void BCSignalListWidgetData::RefreshInputChannelName()
     ui->label->setText(m_pChannel->GetChannelName().isEmpty() ? m_pChannel->GetChannelBaseName() : m_pChannel->GetChannelName());
 }
 
-void BCSignalListWidgetData::dragEnterEvent(QDragEnterEvent* event){
-    //相同类不能放
-    BCSignalListWidgetData* source = qobject_cast<BCSignalListWidgetData*>(event->source());
-    if(source && (source != this)){
-        return;
-    }
-
-    if (event->mimeData()->hasFormat("inputChannel"))
-    {
-        //signal_data(m_pChannel);
-        event->accept();
-    }
-    else
-       event->ignore();
-}
-
-void BCSignalListWidgetData::mousePressEvent(QMouseEvent* e) {
-    if (e->button() == Qt::LeftButton) {
-        if(NULL == m_pChannel)
-            return;
-
-        // 构造拖拽数据
-        QList<QString> listdata;
-
-        listdata.append("1");       //1 类型标识
-        listdata.append( QString::number(m_pChannel->GetChannelType()) );
-        listdata.append( QString::number(m_pChannel->GetChannelID()) );
-
-        QByteArray exData;
-        QDataStream dataStream(&exData,QIODevice::WriteOnly);
-        dataStream << listdata;
-
-        QDrag *drag = new QDrag(this);
-        QMimeData *mimeData = new QMimeData();
-        mimeData->setData("inputChannel", exData);
-        drag->setMimeData(mimeData);
-        drag->exec(Qt::CopyAction);
-    }
-}

@@ -71,6 +71,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setCentralWidget( m_pTabWidgetRooms );
     // 安装事件过滤器
     m_pTabWidgetRooms->installEventFilter( this );              // 修改名称和删除场景组菜单
+    connect(BCLocalServer::Application(), &BCLocalServer::roomStateChanged, this, &MainWindow::RefreshStatusBar);
 
     // 设置tabwidget风格
     m_pTabWidgetRooms->setStyleSheet( BCCommon::g_qsTabWidgetStyle );
@@ -86,7 +87,7 @@ MainWindow::MainWindow(QWidget *parent) :
     m_pOutOfDateTimer->start();
 
     // 默认尺寸，否则初始化全屏时不好使
-    //this->resize(1024, 768);
+    this->resize(1024, 768);
 }
 
 MainWindow::~MainWindow()
@@ -756,34 +757,6 @@ void MainWindow::onDebugDlgVisble()
     m_pDebugDlg->setVisible( true );
 }
 
-void MainWindow::Show()
-{
-    resize(1024, 768);
-    showMaximized();
-    return;
-    // 应用启动时显示模式:0：Nomarl需指定宽高；1：最小化显示；2：最大化显示；3：全屏显示
-    switch( BCCommon::g_bApplicationDefaultDisplayMode ) {
-    case 0: {
-        this->showNormal();
-        this->resize(BCCommon::g_bApplicationNomarlDisplayWidth,
-                     BCCommon::g_bApplicationNomarlDisplayHeight);
-    }
-        break;
-    case 1:
-        this->showMinimized();
-        break;
-    case 2:
-        this->showMaximized();
-        break;
-    case 3:
-        this->showFullScreen();
-        break;
-    default:
-        this->showMaximized();
-        break;
-    }
-}
-
 void MainWindow::stop()
 {
     //
@@ -800,16 +773,13 @@ void MainWindow::RefreshMainWindow()
     }
 
     BCLocalServer *pServer = BCLocalServer::Application();
-    connect(pServer, &BCLocalServer::roomStateChanged, this, &MainWindow::RefreshStatusBar);
     pServer->AddLog( "[MainWindow::RefreshMainWindow BEGIN.]" );
     QTime beginTime = QTime::currentTime();
 
     // 根据当前登陆人加载系统数据
-    if ( !BCCommon::g_bConnectWithServer ) {
-        LoadDataFromLocalServer();
-        pServer->AddLog( QString("[MainWindow::RefreshMainWindow LoadDataFromLocalServer OVER. COST: %1 ms]").arg(beginTime.msecsTo( QTime::currentTime() )) );
-        beginTime = QTime::currentTime();
-    }
+    LoadDataFromLocalServer();
+    pServer->AddLog( QString("[MainWindow::RefreshMainWindow LoadDataFromLocalServer OVER. COST: %1 ms]").arg(beginTime.msecsTo( QTime::currentTime() )) );
+    beginTime = QTime::currentTime();
 
     // 使用xml数据初始化房间
     InitRoom();
@@ -822,7 +792,7 @@ void MainWindow::RefreshMainWindow()
 
     // 设置皮肤
     BCCommon::SetApplicationSkin("defaultStyle");
-    Show();
+    showMaximized();
 
     pServer->AddLog( "[MainWindow::RefreshMainWindow END.]" );
 

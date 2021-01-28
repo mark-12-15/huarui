@@ -87,6 +87,7 @@ private:
 
     RibbonToolBarControl* _toolBar2{nullptr};
     bool _addDevice{false};
+    bool _init{false};
 };
 
 #endif // BCRIBBONMAINTOOLBAR_H

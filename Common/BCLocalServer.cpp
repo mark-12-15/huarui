@@ -436,10 +436,10 @@ sRoom BCLocalServer::GetRoomConfig()
     for (int i = 0; i < arrX; i++) {
         for (int j = 0; j < arrY; j++) {
             sDisplay sdisplay;
-            sdisplay.id = i*arrY + j;
-            sdisplay.name = QString("%1").arg(i*arrY + j, 3, 10, QChar('0'));
-            sdisplay.left = j*width;
-            sdisplay.top = i*height;
+            sdisplay.id = j*arrX + i;
+            sdisplay.name = QString("%1").arg(j*arrX + i, 3, 10, QChar('0'));
+            sdisplay.left = i*width;
+            sdisplay.top = j*height;
             sdisplay.resolutionX = width;
             sdisplay.resolutionY = height;
             sdisplay.segmentation = 4;
@@ -451,8 +451,8 @@ sRoom BCLocalServer::GetRoomConfig()
     sRoom sroom;
     sroom.id = 0;
     sroom.name = name;
-    sroom.width = arrY*width;
-    sroom.height = arrX*height;
+    sroom.width = arrX*width;
+    sroom.height = arrY*height;
     sroom.lstGroupDisplay.append( sgroupdisplay );
     sroom.isNetConnect = docElem.attribute("connectByNet").toInt();
     sroom.switchip = docElem.attribute("ip");

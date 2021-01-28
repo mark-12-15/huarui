@@ -1,27 +1,27 @@
 <?xml version='1.0' encoding='UTF-8'?>
 <BR>
     <defaultSort>
-        <node valid="1" type="0"/>
-        <node valid="1" type="1"/>
-        <node valid="1" type="2"/>
-        <node valid="1" type="3"/>
-        <node valid="1" type="4"/>
-        <node valid="1" type="5"/>
-        <node valid="1" type="6"/>
-        <node valid="1" type="7"/>
-        <node valid="1" type="8"/>
-        <node valid="1" type="9"/>
+        <node type="0" valid="1"/>
+        <node type="1" valid="1"/>
+        <node type="2" valid="1"/>
+        <node type="3" valid="1"/>
+        <node type="4" valid="1"/>
+        <node type="5" valid="1"/>
+        <node type="6" valid="1"/>
+        <node type="7" valid="1"/>
+        <node type="8" valid="1"/>
+        <node type="9" valid="1"/>
     </defaultSort>
     <currentSort>
-        <node px="180" valid="1" type="0"/>
-        <node px="300" valid="-1" type="1"/>
-        <node px="300" valid="1" type="9"/>
-        <node px="300" valid="1" type="4"/>
-        <node px="300" valid="-1" type="2"/>
-        <node px="300" valid="-1" type="3"/>
-        <node px="300" valid="-1" type="5"/>
-        <node px="300" valid="-1" type="6"/>
-        <node px="300" valid="-1" type="7"/>
-        <node px="300" valid="-1" type="8"/>
+        <node type="0" valid="1" px="180"/>
+        <node type="1" valid="-1" px="300"/>
+        <node type="9" valid="1" px="300"/>
+        <node type="4" valid="1" px="300"/>
+        <node type="2" valid="-1" px="300"/>
+        <node type="3" valid="-1" px="300"/>
+        <node type="5" valid="-1" px="300"/>
+        <node type="6" valid="-1" px="300"/>
+        <node type="7" valid="-1" px="300"/>
+        <node type="8" valid="-1" px="300"/>
     </currentSort>
 </BR>

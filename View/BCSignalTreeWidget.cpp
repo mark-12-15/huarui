@@ -1,7 +1,6 @@
 ﻿#include "BCSignalTreeWidget.h"
 #include <QDebug>
 #include <QDrag>
-#include <QMimeData>
 #include <QDragEnterEvent>
 #include <QDropEvent>
 #include <QMenu>
@@ -74,45 +73,6 @@ BCSignalTreeWidget::BCSignalTreeWidget(QWidget *parent)
 BCSignalTreeWidget::~BCSignalTreeWidget()
 {
 
-}
-
-void BCSignalTreeWidget::dragEnterEvent(QDragEnterEvent* event)
-{
-    if (event->mimeData()->hasFormat("inputChannel")) {
-        event->accept();
-    } else {
-        event->ignore();
-    }
-}
-
-void BCSignalTreeWidget::mouseMoveEvent (QMouseEvent *event)
-{
-    if(event->buttons() & Qt::LeftButton) {
-        QList<QString> listdata;
-        // 单选
-        BCSignalTreeWidgetItem *pDragItem = dynamic_cast<BCSignalTreeWidgetItem*>( this->itemAt( event->pos() ) );
-        if (NULL != pDragItem) {
-            listdata << "0";       //0 类型标识
-            listdata << QString::number(pDragItem->GetChannel()->GetChannelType());
-            listdata << QString::number(pDragItem->GetChannel()->GetChannelID());
-        }
-
-        if ( listdata.isEmpty() )
-            return;
-
-        QByteArray exData;
-        QDataStream dataStream(&exData,QIODevice::WriteOnly);
-        dataStream <<listdata;
-
-        QDrag *drag = new QDrag(this);
-        QMimeData *mimeData = new QMimeData();
-        mimeData->setData("inputChannel", exData);
-        drag->setMimeData(mimeData);
-
-        drag->exec(Qt::CopyAction);
-    }
-
-    QTreeWidget::mouseMoveEvent( event );
 }
 
 void BCSignalTreeWidget::mouseReleaseEvent(QMouseEvent* event)

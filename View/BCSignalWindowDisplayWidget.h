@@ -68,7 +68,7 @@ public:
     void SetSignalWindowResize(int x, int y, int w, int h, bool bSendCmd = true);
 
     // 通讯接口
-    void Winsize(bool bUpdateEcho);
+    void Winsize();
 
     bool    m_bPress;                   // 鼠标左键单击事件需要记录的值
 

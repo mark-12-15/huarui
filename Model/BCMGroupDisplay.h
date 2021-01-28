@@ -48,6 +48,9 @@ public:
     void SetResolutionSize(int x, int y);
     QSize GetResolutionSize();
 
+    // 根据实际矩形区域，返回单屏ID和单屏内矩形的MAP
+    QMap<int, QRect> getDisplayRect(QRect rect);
+
 protected:
     QList<BCMDisplay *> m_lstDisplay;   // 屏幕链表
 

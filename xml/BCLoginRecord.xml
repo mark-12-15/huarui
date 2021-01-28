@@ -1,3 +1,3 @@
-<BR savePwd="0" Port="18000" IsConnectServer="0" ServerMode="1" IP="192.168.1.110" password="">
+<BR IP="192.168.1.110" IsConnectServer="0" ServerMode="1" savePwd="0" Port="18000" password="">
     <User usr="admin" pwd=""/>
 </BR>

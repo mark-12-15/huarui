@@ -34,15 +34,11 @@ SOURCES +=\
     ../View/BCScreenName.cpp \
     ../Model/BCMRoom.cpp \
     ../View/BCScreenDlg.cpp \
-    ../Setting/BCSettingDisplyModelStyle.cpp \
     ../Setting/BCSettingMainPanelStyle.cpp \
     ../Setting/BCSettingPasswordStyle.cpp \
     ../View/BCSystemplan.cpp \
     ../View/BCSignal.cpp \
     ../View/BCScene.cpp \
-    ../View/BCMatrixInput.cpp \
-    ../View/BCMatrixCut.cpp \
-    ../View/BCMatrix.cpp \
     ../View/BCControl.cpp \
     ../View/BCWidgetBtn.cpp \
     ../View/BCFaceWidget.cpp \
@@ -115,15 +111,11 @@ HEADERS  += MainWindow.h \
     ../View/BCScreenName.h \
     ../Model/BCMRoom.h \
     ../View/BCScreenDlg.h \
-    ../Setting/BCSettingDisplyModelStyle.h \
     ../Setting/BCSettingMainPanelStyle.h \
     ../Setting/BCSettingPasswordStyle.h \
     ../View/BCSystemplan.h \
     ../View/BCSignal.h \
     ../View/BCScene.h \
-    ../View/BCMatrixInput.h \
-    ../View/BCMatrixCut.h \
-    ../View/BCMatrix.h \
     ../View/BCControl.h \
     ../View/BCWidgetBtn.h \
     ../View/BCFaceWidget.h \
@@ -186,16 +178,12 @@ FORMS    += \
     ../Setting/LightSettingDlg.ui \
     ../View/BCScreenName.ui \
     ../View/BCScreenDlg.ui \
-    ../Setting/BCSettingDisplyModelStyle.ui \
     ../Setting/BCSettingMainPanelStyle.ui \
     ../Setting/BCSettingPasswordStyle.ui \
     ../View/BCFaceWidget.ui \
     ../View/BCSignal.ui \
     ../View/BCSystemplan.ui \
     ../View/BCScene.ui \
-    ../View/BCMatrixInput.ui \
-    ../View/BCMatrixCut.ui \
-    ../View/BCMatrix.ui \
     ../View/BCWidgetBtn.ui \
     ../View/BCControl.ui \
     ../View/BCSignalListWidgetData.ui \

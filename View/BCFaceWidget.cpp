@@ -7,9 +7,6 @@
 #include "BCSignal.h"
 #include "BCSystemplan.h"
 #include "BCScene.h"
-#include "BCMatrix.h"
-#include "BCMatrixCut.h"
-#include "BCMatrixInput.h"
 #include "BCCutScreen.h"
 #include "../Common/BCCommon.h"
 #include "../Model/BCMChannel.h"
@@ -74,15 +71,12 @@ QWidget* BCFaceWidget::GetWidget(MainWindow::SIGNALSOURCETYPE eType)
         }
             break;
         case MainWindow::MATRIXPANELSIGSRC: {
-            pWidget = dynamic_cast<BCMatrix*>( pItem->widget() );
         }
             break;
         case MainWindow::MATRIXINPUTSIGSRC: {
-            pWidget = dynamic_cast<BCMatrixInput*>( pItem->widget() );
         }
             break;
         case MainWindow::MATRIXSWAPSIGSRC: {
-            pWidget = dynamic_cast<BCMatrixCut*>( pItem->widget() );
         }
             break;
         case MainWindow::WINDOWSCENESIGSRC: {
@@ -158,18 +152,12 @@ void BCFaceWidget::Refresh(int nReconstruction)
             }
                 break;
             case MainWindow::MATRIXPANELSIGSRC: {
-                // 这里判断是否有矩阵联控，有则显示
-                if (BCCommon::Application()->GetMMatrix()) {
-                    ui->verticalLayout->addWidget(new BCMatrix((bool)obj.valid, obj.px));
-                }
             }
                 break;
             case MainWindow::MATRIXINPUTSIGSRC: {
-                ui->verticalLayout->addWidget(new BCMatrixInput((bool)obj.valid, obj.px));
             }
                 break;
             case MainWindow::MATRIXSWAPSIGSRC: {
-                ui->verticalLayout->addWidget(new BCMatrixCut((bool)obj.valid, obj.px));
             }
                 break;
             case MainWindow::WINDOWSCENESIGSRC: {
@@ -285,30 +273,6 @@ void BCFaceWidget::UpdateSignalSourceSort()
             obj.type = (int)MainWindow::SYSPLANSIGSRC;
             obj.valid = pSystemPlan->IsVisible() ? 1 : 0;
             obj.px = pSystemPlan->m_minHeight;
-            lstSignalSources.append( obj );
-        }
-
-        BCMatrix *pMatrix = dynamic_cast<BCMatrix*>( pItem->widget() );
-        if (NULL != pMatrix) {
-            obj.type = (int)MainWindow::MATRIXPANELSIGSRC;
-            obj.valid = pMatrix->IsVisible() ? 1 : 0;
-            obj.px = pMatrix->m_minHeight;
-            lstSignalSources.append( obj );
-        }
-
-        BCMatrixInput *pMatrixInput = dynamic_cast<BCMatrixInput*>( pItem->widget() );
-        if (NULL != pMatrixInput) {
-            obj.type = (int)MainWindow::MATRIXINPUTSIGSRC;
-            obj.valid = pMatrixInput->IsVisible() ? 1 : 0;
-            obj.px = pMatrixInput->m_minHeight;
-            lstSignalSources.append( obj );
-        }
-
-        BCMatrixCut *pMatrixCut = dynamic_cast<BCMatrixCut*>( pItem->widget() );
-        if (NULL != pMatrixCut) {
-            obj.type = (int)MainWindow::MATRIXSWAPSIGSRC;
-            obj.valid = pMatrixCut->IsVisible() ? 1 : 0;
-            obj.px = pMatrixCut->m_minHeight;
             lstSignalSources.append( obj );
         }
 

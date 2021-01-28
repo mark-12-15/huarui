@@ -213,21 +213,8 @@ void BCSignalWindowDisplayWidget::ResizeRect(int x, int y, int w, int h, bool bS
         m_rectFact = m_pSignalWindowMgr->MapToFactRect(x, y, w, h);
     }
 
-    bool bUpdateEcho = false;   // 只有当尺寸变化时才更新预监回显
-    if ( !BCCommon::g_bConnectWithServer ) {    // 单机直接修改位置
-        bUpdateEcho = ((this->size().width() != w) || (this->size().height() != h)) ? true : false;
-        if (4 == m_pSignalWindowMgr->GetMRoom()->GetType())
-            this->resize(w, h-50);
-        else
-            this->resize(w, h);
-        this->move(x, y);
-    } else if ( !bSendCmd ) {   // 服务器如果不发送指令可以直接移动位置
-        if (4 == m_pSignalWindowMgr->GetMRoom()->GetType())
-            this->resize(w, h-50);
-        else
-            this->resize(w, h);
-        this->move(x, y);
-    }
+    this->resize(w, h);
+    this->move(x, y);
 
     // 刷新文字显示
     RefreshTextDisplay();
@@ -242,7 +229,7 @@ void BCSignalWindowDisplayWidget::ResizeRect(int x, int y, int w, int h, bool bS
                 }
             }
 
-            Winsize( bUpdateEcho );
+            Winsize();
         }
 
         // 记录输入通道当前屏组上次开窗位置
@@ -452,13 +439,13 @@ void BCSignalWindowDisplayWidget::SetInputChannel(BCMChannel *pChannel)
     RefreshTextDisplay();
 
     // 发送一次指令
-    Winsize( true );
+    Winsize();
 
     // ??? 暂时置顶，硬件支持后去掉
     SetSignalPosition( 0 );
 }
 
-void BCSignalWindowDisplayWidget::Winsize(bool bUpdateEcho)
+void BCSignalWindowDisplayWidget::Winsize()
 {
     if ((NULL == m_pGroupDisplayWidget) || (NULL == m_pInputChannel))
         return;
@@ -471,8 +458,17 @@ void BCSignalWindowDisplayWidget::Winsize(bool bUpdateEcho)
     int groupid = pMGroupDisplay->GetGroupDisplayID();
 
     // 和服务器通讯
-        BCLocalServer *pServer = BCLocalServer::Application();
-        pServer->winsize(groupid, m_pInputChannel->GetChannelID(), m_nWindowID, m_rectFact.left(), m_rectFact.top(), m_rectFact.left()+m_rectFact.width(), m_rectFact.top()+m_rectFact.height(), m_pInputChannel->GetChannelType(), m_nCopyIndex);
+    if (BCLocalServer::Application()->isFullScreenMode()) {
+        BCLocalServer::Application()->winsize(groupid, m_pInputChannel->GetChannelID(), m_nWindowID, m_rectFact.left(), m_rectFact.top(), m_rectFact.left()+m_rectFact.width(), m_rectFact.top()+m_rectFact.height(), m_pInputChannel->GetChannelType(), m_nCopyIndex);
+    } else {
+        // matrix switch channel
+        auto map = pMGroupDisplay->getDisplayRect(m_rectFact);
+        foreach (auto id, map) {
+            // 矩阵切换 m_pInputChannel->GetChannelID()  id
+
+            // 拼接开窗 map.value
+        }
+    }
 }
 
 void BCSignalWindowDisplayWidget::SetSignalWindowProperty()
