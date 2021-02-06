@@ -11,6 +11,7 @@
 #include <QSerialPort>
 #include <QTimer>
 #include <QMutex>
+#include "BCLocalServer.h"
 
 class BCRoomMainWidget;
 class QTcpSocket;
@@ -127,11 +128,6 @@ protected:
 inline bool BCMRoom::IsLoopWindowScene()
 {
     return m_bLoopWindowScene;
-}
-
-inline bool BCMRoom::IsSwitchOn()
-{
-    return m_bSwitchOn;
 }
 
 inline int BCMRoom::GetSwitchIsNetConnect()

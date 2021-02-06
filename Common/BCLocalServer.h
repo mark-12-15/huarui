@@ -417,12 +417,20 @@ public:
 
     void UpdateRoomName(QString str);
     void UpdateRoomSwitchConfig(BCMRoom *room);
+    bool isUpdateRoomConfig(bool fullMode, int arrX, int arrY, int width, int height);
 
     void AddScreen(BCMWindowScene *screen);
     void RemoveScreen(int id);
     void UpdateSceneSort(QMap<int, int> map);
 
     void UpdateInputChannel(int id, QString name);
+
+    // 发送指令
+    void updateFormatToDevice(bool fullMode, int arrX, int arrY, int width, int height);
+    void updateLightToDevice(int value);
+    void updateColorToDevice(int r, int g, int b);
+    void updateDisplayPowerToDevice(bool on);
+    void updateConfigFileToDevice(QByteArray ba);
 
     // 矩阵配置
     QList<sMatrix> GetMatrixConfig();
@@ -448,8 +456,6 @@ public:
     void winswitch(int gid, int winid, int chid, int type, int copyIndex);
     void save(int groupID, int sceneID);
     void load(int groupID, int sceneID);
-    void winup(int gid, int winid);
-    void windown(int gid, int winid);
 
     bool isFullScreenMode();
 
@@ -466,30 +472,22 @@ public:
     QString     m_qsCurrentCheckBit;        // 当前校验位
     QString     m_qsCurrentStreamCtrl;      // 当前流控制
 
+    unsigned int         _lightValue{20};             // 亮度值和颜色值
+    unsigned int         _rValue{20};
+    unsigned int         _gValue{20};
+    unsigned int         _bValue{20};
+    bool                _displayPower{false};
+
     bool        m_bIsLoadDataOK;            // 是否加载完数据，只在不使用DLL时有效
     int         m_nIsDemoMode;              // 是否是演示模式，0：演示模式不能发送指令，1：演示模式可以发送指令，2：不是演示模式
 
-    void SetDemoLoadDataOK();               // 设置加载完数据，连接通讯，但是属于Demo
     void SetLoadDataOK();                   // 设置加载完数据，连接通讯
     void DisConnect();                      // 断开连接
     void ReConnect();                       // 重新连接
 
-    // VP4000 设置分组
-    void SetRstGroup(); // 清除分组
-    QString GetRstGroup();
-    void SetGroup(int gid, int schid, int echid);
-    QString GetGroup(int gid, int schid, int echid);
-    void SetResolution(int schid, int echid, int resolution);
-    QString GetResolution(int schid, int echid, int resolution);    // 返回指令
-    void SetGFormartxy(int gid, int x, int y, int resolutionX, int resolutionY);
-    QString GetGFormartxy(int gid, int x, int y, int resolutionX, int resolutionY);
-    void RemoveGroup(int gid);
-    void SetCustomResolution(int liveW, int liveH, int preW, int preH, int syncW, int syncH, int totalW, int totalH, int polarityW, int polarityH, int hertz);
-    QString GetCustomResolution(int liveW, int liveH, int preW, int preH, int syncW, int syncH, int totalW, int totalH, int /*polarityW*/, int /*polarityH*/, int hertz);
-
     // 初始化通信参数
     void InitCommunicationPara();
-    void SetCommunicationPara();
+    void updateCommunicationPara();
     void ConnectSerialPort();
 
     void SendCmd(const QString &cmd, bool bAddDebug = true);
@@ -509,6 +507,15 @@ private slots:
 private:
     BCLocalServer();
     ~BCLocalServer();
+
+    QString commandWithHeader();
+    QString commandWithCheckout(const QString &cmd);
+
+    QString initDeviceCommand();
+    QString formatCommand();
+    QString colorCommand();
+    QString lightCommand();
+    QString displayPowerCommand();
 
     static BCLocalServer    *m_pLocalServer;    // 全局变量
 

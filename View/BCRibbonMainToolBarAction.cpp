@@ -15,7 +15,6 @@
 #include "../Setting/BCSettingDisplaySwitchConfigDlg.h"
 #include "../Setting/BCSettingAutoReadInputChannelConfigDlg.h"
 #include "../Model/BCMGroupScene.h"
-#include "../View/BCAutoDateDlg.h"
 #include "../Common/BCLocalServer.h"
 #include "../Model/BCMRoom.h"
 #include "../Setting/BCSettingMatrixFormatDlg.h"
@@ -26,6 +25,7 @@
 #include "AdminPasswordDlg.h"
 #include "DeviceFormatDlg.h"
 #include <QFileDialog>
+#include "BCMGroupDisplay.h"
 
 BCRibbonMainToolBarAction::BCRibbonMainToolBarAction(BCRibbonMainToolBar::BUTTONTYPE eType, const BCRibbonMainToolBar::ButtonInfo &btn,
                                                      QObject *parent)
@@ -110,14 +110,47 @@ void BCRibbonMainToolBarAction::init()
             auto fileName = QFileDialog::getOpenFileName(BCCommon::Application(),
                                                          tr("选择配置文件"),
                                                          ".",
-                                                         tr("接收卡配置文件(*.rxcfg *.scrcfg)"));
+                                                         tr("接收卡配置文件(*.mvcfg)"));
              if (!fileName.isEmpty()) {
                  QFile file(fileName);
                  if (file.open(QIODevice::ReadOnly)) {
-                     auto stream = file.readAll();
+                     auto data = file.readAll();
                      file.close();
 
-                     BCLocalServer::Application()->SendCmd(stream);
+                     data = QByteArray::fromBase64(data);
+                     auto err = new QJsonParseError;
+                     auto doc = QJsonDocument::fromJson(data, err);
+                     if (err->error != QJsonParseError::NoError)
+                     {
+                         qWarning() << "read mvcfg error, desc: " << err->errorString();
+                         return;
+                     }
+
+                     auto obj = doc.object();
+                     if (obj.isEmpty())
+                     {
+                         qWarning() << "mvcfg file format error, not a json obj.";
+                         return;
+                     }
+
+                     if (!obj.contains("mode")
+                             || !obj.contains("arrX") || !obj.contains("arrY")
+                             || !obj.contains("width") || !obj.contains("height"))
+                     {
+                         qWarning() << "mvcfg file format error, miss key.";
+                         return;
+                     }
+
+                     auto mode = obj.value("mode").toInt() == 1;
+                     auto arrX = obj.value("arrX").toInt();
+                     auto arrY = obj.value("arrY").toInt();
+                     auto width = obj.value("width").toInt();
+                     auto height = obj.value("height").toInt();
+
+                     if (BCLocalServer::Application()->isUpdateRoomConfig(mode, arrX, arrY, width, height))
+                     {
+                         BCLocalServer::Application()->updateFormatToDevice(mode, arrX, arrY, width, height);
+                     }
                  }
              }
         });
@@ -127,12 +160,30 @@ void BCRibbonMainToolBarAction::init()
             auto fileName = QFileDialog::getSaveFileName(BCCommon::Application(),
                                                          tr("保存配置文件"),
                                                          ".",
-                                                         tr("接收卡配置文件(*.rxcfg *.scrcfg)"));
+                                                         tr("接收卡配置文件(*.mvcfg)"));
             if (!fileName.isEmpty()) {
                 QFile file(fileName);
                 if (file.open(QIODevice::WriteOnly)) {
-                    QDataStream out(&file);
-                    out << QString("markview...");
+                    QJsonObject obj;
+                    auto room = BCCommon::Application()->GetMRoom(0);
+                    if (room) {
+                        obj.insert("mode", room->isFullScreeMode ? 1 : 0);
+
+                        auto group = room->GetGroupDisplay(0);
+                        if (group) {
+                            auto arr = group->GetArraySize();
+                            auto size = group->GetResolutionSize();
+
+                            obj.insert("arrX", arr.width());
+                            obj.insert("arrY", arr.height());
+                            obj.insert("width", size.width());
+                            obj.insert("height", size.height());
+                        }
+                    }
+                    QJsonDocument doc(obj);
+                    auto data = doc.toJson(QJsonDocument::Indented);
+
+                    file.write(data.toBase64());
                     file.close();
                 }
             }

@@ -91,9 +91,6 @@ protected:
     // 处理悬停事件
     bool event(QEvent *event);
 
-    // for remote
-    //bool eventFilter(QObject *watched, QEvent *event);
-
     // 菜单事件
     void contextMenuEvent(QContextMenuEvent *e);
 

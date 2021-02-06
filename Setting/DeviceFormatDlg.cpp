@@ -1,9 +1,11 @@
 #include "DeviceFormatDlg.h"
 #include "ui_DeviceFormatDlg.h"
 #include <QFile>
+#include <QFileDialog>
 #include "BCCommon.h"
 #include "BCMRoom.h"
 #include "BCMGroupDisplay.h"
+#include "BCLocalServer.h"
 
 DeviceFormatDlg::DeviceFormatDlg(QWidget *parent) :
     QDialog(parent),
@@ -43,57 +45,6 @@ void DeviceFormatDlg::init()
     }
 }
 
-void DeviceFormatDlg::updateLocalFile()
-{
-    QFile file( QString("../xml/BCRoomConfig.xml") );
-    if(!file.open(QIODevice::ReadOnly)){
-        return;
-    }
-
-    // 将文件内容读到QDomDocument中
-    QDomDocument doc;
-    bool bLoadFile = doc.setContent(&file);
-    file.close();
-
-    if ( !bLoadFile )
-        return;
-
-    // 二级链表
-    QDomElement docElem = doc.documentElement();
-    docElem.setAttribute("fullMode", ui->rbtnFull->isChecked()?"1":"0");
-    docElem.setAttribute("arrayX", ui->sbw->value());
-    docElem.setAttribute("arrayY", ui->sbh->value());
-    docElem.setAttribute("width", ui->lew->text().toInt());
-    docElem.setAttribute("height", ui->leh->text().toInt());
-
-    // 清空场景和输入通道
-    while (!docElem.childNodes().isEmpty())
-        docElem.removeChild(docElem.firstChild());
-
-    // 重新添加输入通道
-    auto count = ui->sbw->value() * ui->sbh->value();
-    if (count > 0) {
-        auto eleCh = doc.createElement(QString("Channel"));
-
-        for (int i = 0; i < count; i++) {
-            auto eleNode = doc.createElement(QString("Node"));
-            eleNode.setAttribute("id", QString::number(i));
-            eleNode.setAttribute("name", QString("电脑%1").arg(i+1));
-
-            eleCh.appendChild(eleNode);
-        }
-
-        docElem.appendChild(eleCh);
-    }
-
-    // 写入文件
-    if( !file.open(QIODevice::WriteOnly | QIODevice::Truncate) )
-        return;
-    QTextStream out(&file);
-    doc.save(out,4);
-    file.close();
-}
-
 void DeviceFormatDlg::on_btnCancel_clicked()
 {
     close();
@@ -102,9 +53,14 @@ void DeviceFormatDlg::on_btnCancel_clicked()
 void DeviceFormatDlg::on_btnApply_clicked()
 {
     // write to device
+    BCLocalServer::Application()->updateFormatToDevice(ui->rbtnFull->isChecked(),
+                                                       ui->sbw->value(), ui->sbh->value(),
+                                                       ui->lew->text().toInt(), ui->leh->text().toInt());
 
     // write to local file
-    updateLocalFile();
+    BCLocalServer::Application()->isUpdateRoomConfig(ui->rbtnFull->isChecked(),
+                                                     ui->sbw->value(), ui->sbh->value(),
+                                                     ui->lew->text().toInt(), ui->leh->text().toInt());
 
     // refresh mainwindow
     BCCommon::Application()->RefreshMainWindow();
@@ -139,4 +95,22 @@ void DeviceFormatDlg::on_leh_editingFinished()
     ui->lblValue->setText(QString("%1*%2")
                           .arg(ui->sbw->value()*ui->lew->text().toInt())
                           .arg(ui->sbh->value()*ui->leh->text().toInt()));
+}
+
+void DeviceFormatDlg::on_btnSelect_clicked()
+{
+    auto fileName = QFileDialog::getOpenFileName(BCCommon::Application(),
+                                                 tr("选择配置文件"),
+                                                 ".",
+                                                 tr("接收卡配置文件(*.rxcfg *.scrcfg)"));
+     if (!fileName.isEmpty()) {
+         ui->leFileName->setText(fileName);
+         QFile file(fileName);
+         if (file.open(QIODevice::ReadOnly)) {
+             auto data = file.readAll();
+             file.close();
+
+             BCLocalServer::Application()->updateConfigFileToDevice(data);
+         }
+     }
 }

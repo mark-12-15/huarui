@@ -58,10 +58,10 @@
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="lineEdit_3"/>
+        <widget class="QLineEdit" name="leFileName"/>
        </item>
        <item>
-        <widget class="QToolButton" name="toolButton">
+        <widget class="QToolButton" name="btnSelect">
          <property name="text">
           <string>...</string>
          </property>

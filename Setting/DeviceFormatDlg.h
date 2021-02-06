@@ -28,11 +28,12 @@ private slots:
 
     void on_leh_editingFinished();
 
+    void on_btnSelect_clicked();
+
 private:
     Ui::DeviceFormatDlg *ui;
 
     void init();
-    void updateLocalFile();
 };
 
 #endif // DEVICEFORMATDLG_H

@@ -75,7 +75,7 @@ void BCRibbonMainToolBar::Build()
     _toolBar2->addAction(new BCRibbonMainToolBarAction(AUTHORITY, m_mapMainButtonTypeName.value(AUTHORITY), this), Qt::ToolButtonTextUnderIcon);
     _toolBar2->addAction(new BCRibbonMainToolBarAction(IMPORTFILE, m_mapMainButtonTypeName.value(IMPORTFILE), this), Qt::ToolButtonTextUnderIcon);
     _toolBar2->addAction(new BCRibbonMainToolBarAction(EXPORTFILE, m_mapMainButtonTypeName.value(EXPORTFILE), this), Qt::ToolButtonTextUnderIcon);
-    _toolBar2->addAction(new BCRibbonMainToolBarAction(DISPLAYSWITCHCONFIG, m_mapMainButtonTypeName.value(DISPLAYSWITCHCONFIG), this), Qt::ToolButtonTextUnderIcon);
+    //_toolBar2->addAction(new BCRibbonMainToolBarAction(DISPLAYSWITCHCONFIG, m_mapMainButtonTypeName.value(DISPLAYSWITCHCONFIG), this), Qt::ToolButtonTextUnderIcon);
     _toolBar2->addAction(new BCRibbonMainToolBarAction(MATRIXFORMAT, m_mapMainButtonTypeName.value(MATRIXFORMAT), this), Qt::ToolButtonTextUnderIcon);
     group2->addControl(_toolBar2);
 

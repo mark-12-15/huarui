@@ -19,6 +19,7 @@
 #include "BCSingleDisplayVirtualWidget.h"
 #include "BCDecoder.h"
 #include "../Common/BCCommon.h"
+#include "BCMMatrix.h"
 
 BCSignalWindowDisplayWidget::BCSignalWindowDisplayWidget(BCGroupDisplayWidget *pGroupDisplayWidget, int x, int y, int w, int h, BCMChannel *pChannel, int winid, BCRoomMainWidget *pSignalWindowMgr, bool bSendCmd) :
     QWidget(pSignalWindowMgr),
@@ -429,9 +430,6 @@ void BCSignalWindowDisplayWidget::SetInputChannel(BCMChannel *pChannel)
     if (pChannel == m_pInputChannel)
         return;
 
-//    int chid = m_pInputChannel->GetChannelID();
-//    int chType = m_pInputChannel->GetChannelType();
-
     // 重新赋值输入通道，并刷新内部显示
     m_pInputChannel->RemoveSignalWindowDisplayWidget( this );
     m_pInputChannel = pChannel;
@@ -461,12 +459,22 @@ void BCSignalWindowDisplayWidget::Winsize()
     if (BCLocalServer::Application()->isFullScreenMode()) {
         BCLocalServer::Application()->winsize(groupid, m_pInputChannel->GetChannelID(), m_nWindowID, m_rectFact.left(), m_rectFact.top(), m_rectFact.left()+m_rectFact.width(), m_rectFact.top()+m_rectFact.height(), m_pInputChannel->GetChannelType(), m_nCopyIndex);
     } else {
+        auto matrix = BCCommon::Application()->GetMMatrix();
+        if (nullptr == matrix)
+        {
+            return;
+        }
+
         // matrix switch channel
         auto map = pMGroupDisplay->getDisplayRect(m_rectFact);
-        foreach (auto id, map) {
-            // 矩阵切换 m_pInputChannel->GetChannelID()  id
+        foreach (auto id, map.keys()) {
+            // 矩阵切换 m_pInputChannel->GetChannelID() -> id
+            matrix->SetSwitch(m_pInputChannel->GetChannelID(), id);
 
             // 拼接开窗 map.value
+            auto rect = map.value(id);
+            BCLocalServer::Application()->winsize(0, m_pInputChannel->GetChannelID(), m_nWindowID,
+                                                  rect.left(), rect.top(), rect.right(), rect.bottom(), 0, 0);
         }
     }
 }
@@ -512,71 +520,28 @@ void BCSignalWindowDisplayWidget::SetSignalWindowResize(int x, int y, int w, int
 
 void BCSignalWindowDisplayWidget::contextMenuEvent(QContextMenuEvent *e)
 {
-    // 矩阵不显示菜单
-    if (4 == m_pSignalWindowMgr->GetMRoom()->GetType())
-        return;
-
     // 构造菜单
     QMenu menu;
     BCCommon::SetSystemFont( &menu );
 
-    QAction *pRapidWindowAction = menu.addAction(QIcon(BCCommon::g_qsImageFilePrefix+BCCommon::g_qsApplicationStyle+"/"+BCCommon::g_qsSignalWindowMenuActionLocationIconPath), QObject::tr("快速定位"));
-
-    QAction *pCutChannelAction = NULL;
-    // 回显为主工具条统一控制，窗口不单独添加开关
-//    if ( BCCommon::g_bEchoModel ) {
-//        pEchoAction = menu.addAction(QIcon(BCCommon::g_qsImageFilePrefix+BCCommon::g_qsApplicationStyle+"/"+BCCommon::g_qsSignalWindowMenuActionEchoIconPath), QObject::tr("是否回显"));
-//        pEchoAction->setCheckable( true );
-//        pEchoAction->setChecked( m_bEcho );
-//    }
-    QAction *pChannelRemoteAction = NULL;
-    if ( BCCommon::g_bContainsRemote ) {    // 全局变量控制是否显示穿透
-        pChannelRemoteAction = menu.addAction(QIcon(BCCommon::g_qsImageFilePrefix+BCCommon::g_qsApplicationStyle+"/remoteconfig16.png"), QObject::tr("穿透IP"));
+    auto chMenu = menu.addMenu(QIcon(BCCommon::g_qsImageFilePrefix+BCCommon::g_qsApplicationStyle+"/checkupdate.png"), tr("信号源"));
+    QHash<QAction*, BCMChannel*> hash;
+    foreach (auto channel, BCCommon::Application()->GetInputChannels()) {
+        auto action = chMenu->addAction(QIcon(BCCommon::Application()->GetInputChannelIcon(channel->GetSignalSource())), channel->GetChannelName());
+        hash.insert(action, channel);
     }
-    if ((m_pInputChannel->GetChannelType() == 0) || (m_pInputChannel->GetChannelType() == 3)) {
-        MainWindow *pMainWindow = BCCommon::Application();
-        if (pMainWindow->GetCurrentUser()->level < 3) {
-            pCutChannelAction = menu.addAction(QIcon(BCCommon::g_qsImageFilePrefix+BCCommon::g_qsApplicationStyle+"/"+BCCommon::g_qsSignalWindowMenuActionCutIconPath), QObject::tr("裁剪"));
-        }
-    }
-
-    // 权限控制
-    QAction *pSetTop = NULL;
-    QAction *pSetBottom = NULL;
-    QAction *pLock = NULL;
-    MainWindow *pMainWindow = BCCommon::Application();
-    if (pMainWindow->GetCurrentUser()->level < 3) {
-        pSetTop = menu.addAction(QIcon(BCCommon::g_qsImageFilePrefix+BCCommon::g_qsApplicationStyle+"/"+BCCommon::g_qsSignalWindowMenuActionTopIconPath), QObject::tr("置顶"));
-        pSetBottom = menu.addAction(QIcon(BCCommon::g_qsImageFilePrefix+BCCommon::g_qsApplicationStyle+"/"+BCCommon::g_qsSignalWindowMenuActionBottomIconPath), QObject::tr("置底"));
-        pLock = menu.addAction(QIcon(BCCommon::g_qsImageFilePrefix+BCCommon::g_qsApplicationStyle+"/"+BCCommon::g_qsSignalWindowMenuActionLockIconPath), QObject::tr("锁定位置"));
-        pLock->setCheckable( true );
-        pLock->setChecked( m_bLock );
-    }
-    QAction *pScaleToSingleDisplay = menu.addAction(QIcon(BCCommon::g_qsImageFilePrefix+BCCommon::g_qsApplicationStyle+"/"+BCCommon::g_qsSignalWindowMenuActionScaleToSingleDisplayIconPath), QObject::tr("缩放到子屏"));
+    QAction *pAttribute = menu.addAction(QIcon(BCCommon::g_qsImageFilePrefix+BCCommon::g_qsApplicationStyle+"/"+BCCommon::g_qsSignalWindowMenuActionAttributeIconPath), QObject::tr("窗口参数"));
     QAction *pScaleToOverlapDisplay = menu.addAction(QIcon(BCCommon::g_qsImageFilePrefix+BCCommon::g_qsApplicationStyle+"/"+BCCommon::g_qsSignalWindowMenuActionScaleToOverlapDisplayIconPath), QObject::tr("铺满当前屏"));
-    QAction *pScaleToGroupDisplay = menu.addAction(QIcon(BCCommon::g_qsImageFilePrefix+BCCommon::g_qsApplicationStyle+"/"+BCCommon::g_qsSignalWindowMenuActionScaleToAllDisplayIconPath), QObject::tr("铺满所有屏"));
-
+    QAction *pScaleToGroupDisplay = menu.addAction(QIcon(BCCommon::g_qsImageFilePrefix+BCCommon::g_qsApplicationStyle+"/"+BCCommon::g_qsSignalWindowMenuActionScaleToAllDisplayIconPath), QObject::tr("铺满整屏"));
     QAction *pClose = menu.addAction(QIcon(BCCommon::g_qsImageFilePrefix+BCCommon::g_qsApplicationStyle+"/"+BCCommon::g_qsSignalWindowMenuActionCloseIconPath), QObject::tr("关闭"));
-    QAction *pAttribute = menu.addAction(QIcon(BCCommon::g_qsImageFilePrefix+BCCommon::g_qsApplicationStyle+"/"+BCCommon::g_qsSignalWindowMenuActionAttributeIconPath), QObject::tr("属性"));
 
     // 返回选择的action
     QAction *pSelectedAction = menu.exec( this->mapToGlobal(e->pos()) );
     if (NULL != pSelectedAction) {
-        // 置顶
-        if (pSelectedAction == pSetTop) {
-            SetSignalPosition(0);
-        }
-        // 置底
-        if (pSelectedAction == pSetBottom) {
-            SetSignalPosition(1);
-        }
-        // 锁定
-        if (pSelectedAction == pLock) {
-            SetLock( !m_bLock );
-        }
-        // 缩放到单屏
-        if (pSelectedAction == pScaleToSingleDisplay) {
-            ScaleToSingleDisplay();
+        foreach (auto action, hash.keys()) {
+            if (pSelectedAction == action) {
+                SetInputChannel(hash.value(action));
+            }
         }
         // 缩放到所占屏（铺满当前屏）
         if (pSelectedAction == pScaleToOverlapDisplay) {

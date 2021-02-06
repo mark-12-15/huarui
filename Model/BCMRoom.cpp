@@ -239,6 +239,16 @@ void BCMRoom::SetSwitchConfig(int isNet, const QString &ip, int port, const QStr
 
 void BCMRoom::SetSwitchOn(bool b, bool bSendCmd)
 {
+    // 这里因为涉及到校验，而且状态存在于设备中，所以直接发送给设备
+    BCLocalServer::Application()->_displayPower = b;
+    if (bSendCmd)
+    {
+        BCLocalServer::Application()->updateDisplayPowerToDevice(b);
+    }
+
+    return;
+
+
     // 赋值是否打开屏幕
     m_bSwitchOn = b;
 
@@ -409,4 +419,10 @@ void BCMRoom::SendCmd(const QString &cmd)
         m_serial.write( cmd.toLatin1() );
         m_serial.waitForBytesWritten( 50 );
     }
+}
+
+bool BCMRoom::IsSwitchOn()
+{
+    return BCLocalServer::Application()->_displayPower;
+    //return m_bSwitchOn;
 }

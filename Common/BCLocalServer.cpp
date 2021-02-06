@@ -51,6 +51,117 @@ BCLocalServer::~BCLocalServer()
     }
 }
 
+QString BCLocalServer::commandWithHeader()
+{
+    QString cmd;
+    cmd.append(QChar(0x48));
+    cmd.append(QChar(0x55));
+    cmd.append(QChar(0x41));
+    cmd.append(QChar(0x52));
+    cmd.append(QChar(0x59));
+    cmd.append(QChar(0x43));
+    cmd.append(QChar(0xFF));
+
+    return cmd;
+}
+
+uint16_t UpdateCRC16(uint16_t crcIn, uint8_t byte)
+{
+    uint32_t crc = crcIn;
+    uint32_t in = byte|0x100;
+    do
+    {
+        crc <<= 1;
+        in <<= 1;
+        if(in&0x100)
+        ++crc;
+        if(crc&0x10000)
+        crc ^= 0x1021;
+    } while(!(in&0x10000));
+    return crc&0xffffu;
+}
+
+uint16_t Cal_CRC16(const uint8_t* data, uint32_t size)
+{
+    uint32_t crc = 0;
+    const uint8_t* dataEnd = data+size;
+    while(data<dataEnd)
+        crc = UpdateCRC16(crc,*data++);
+    crc = UpdateCRC16(crc,0);
+    crc = UpdateCRC16(crc,0);
+    return crc&0xffffu;
+}
+
+QString BCLocalServer::commandWithCheckout(const QString &cmd)
+{
+    auto res = cmd;
+    unsigned short c = Cal_CRC16((uint8_t *)cmd.toStdString().c_str(), cmd.length());
+    res.append(QChar((unsigned char)(c>>8)));
+    res.append(QChar((unsigned char)c));
+    return res;
+}
+
+QString BCLocalServer::initDeviceCommand()
+{
+    auto cmd = commandWithHeader();
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x0F));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x00));
+
+    return cmd;
+}
+
+QString BCLocalServer::formatCommand()
+{
+    auto cmd = commandWithHeader();
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x0E));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x84));
+
+    return cmd;
+}
+
+QString BCLocalServer::colorCommand()
+{
+    auto cmd = commandWithHeader();
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x0E));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x82));
+
+    return cmd;
+}
+
+QString BCLocalServer::lightCommand()
+{
+    auto cmd = commandWithHeader();
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x0E));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x81));
+
+    return cmd;
+}
+
+QString BCLocalServer::displayPowerCommand()
+{
+    auto cmd = commandWithHeader();
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x0E));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x83));
+
+    return cmd;
+}
+
 BCLocalServer *BCLocalServer::m_pLocalServer = NULL;
 
 BCLocalServer *BCLocalServer::Application()
@@ -96,13 +207,13 @@ void BCLocalServer::InitCommunicationPara()
     m_qsConnectPortWithoutDLL = docElem.attribute("ConnectPortWithoutDLL");
     m_qsCurrentCom = docElem.attribute("CurrentCom");
     m_nCurrentBaudRate = docElem.attribute("CurrentBaudRate").toInt();
-    m_nCurrentDataBit = docElem.attribute("CurrentDataBit").toInt();
-    m_nCurrentStopBit = docElem.attribute("CurrentStopBit").toInt();
-    m_qsCurrentCheckBit = docElem.attribute("CurrentCheckBit") ;
-    m_qsCurrentStreamCtrl = docElem.attribute("CurrentStreamCtrl");
+    m_nCurrentDataBit = 8;//docElem.attribute("CurrentDataBit").toInt();
+    m_nCurrentStopBit = 1;//docElem.attribute("CurrentStopBit").toInt();
+    m_qsCurrentCheckBit = "None";//docElem.attribute("CurrentCheckBit") ;
+    m_qsCurrentStreamCtrl = "None";//docElem.attribute("CurrentStreamCtrl");
 }
 
-void BCLocalServer::SetCommunicationPara()
+void BCLocalServer::updateCommunicationPara()
 {
     QFile file( QString("../xml/BCConnectConfig.xml") );
     if(!file.open(QIODevice::ReadOnly)){
@@ -123,10 +234,10 @@ void BCLocalServer::SetCommunicationPara()
     //docElem.setAttribute("fullMode", _fullScreenMode ? 1 : 0);
     docElem.setAttribute("CurrentCom", m_qsCurrentCom);
     docElem.setAttribute("CurrentBaudRate", m_nCurrentBaudRate);
-    docElem.setAttribute("CurrentDataBit", m_nCurrentDataBit);
-    docElem.setAttribute("CurrentStopBit", m_nCurrentStopBit);
-    docElem.setAttribute("CurrentCheckBit", m_qsCurrentCheckBit);
-    docElem.setAttribute("CurrentStreamCtrl", m_qsCurrentStreamCtrl);
+//    docElem.setAttribute("CurrentDataBit", m_nCurrentDataBit);
+//    docElem.setAttribute("CurrentStopBit", m_nCurrentStopBit);
+//    docElem.setAttribute("CurrentCheckBit", m_qsCurrentCheckBit);
+//    docElem.setAttribute("CurrentStreamCtrl", m_qsCurrentStreamCtrl);
 
     docElem.setAttribute("ConnectIPWithoutDLL", m_qsConnectIPWithoutDLL);
     docElem.setAttribute("ConnectPortWithoutDLL", m_qsConnectPortWithoutDLL);
@@ -174,6 +285,18 @@ void BCLocalServer::ConnectSerialPort()
     m_serial.setFlowControl( eFlowControl );//无流控制
     m_serial.close();                       //先关串口，再打开，可以保证串口不被其它函数占用。
     BCCommon::g_bConnectStatusOK = m_serial.open(QIODevice::ReadWrite);
+    if (BCCommon::g_bConnectStatusOK)
+    {
+        updateCommunicationPara();
+
+        // 初始化，获得当前规模、亮度值、RGB值
+        SendCmd(initDeviceCommand());
+
+        SendCmd(formatCommand());
+        SendCmd(lightCommand());
+        SendCmd(colorCommand());
+        SendCmd(displayPowerCommand());
+    }
 
     emit roomStateChanged();
 }
@@ -198,39 +321,6 @@ void BCLocalServer::SetLoadDataOK()
         } else {
             BCCommon::g_bConnectStatusOK = false;
         }
-    } else {
-        // 设置的时候直接连接串口
-        ConnectSerialPort();
-
-        this->AddLog( QString("[LOADDATA OK. SERIALPORT CONNECTED.]" ) );
-    }
-
-    m_pOneSecondTimer->start();
-}
-
-void BCLocalServer::SetDemoLoadDataOK()
-{
-    m_nIsDemoMode = 1;
-    m_bIsLoadDataOK = true;
-
-    if ( m_bIsNetConnect ) {
-        if (NULL == m_pTcpSocket) {
-            m_pTcpSocket = new QTcpSocket();
-            m_pTcpSocket->setSocketOption(QAbstractSocket::KeepAliveOption, 0);
-            connect(m_pTcpSocket, SIGNAL(readyRead()), this, SLOT(onRecvTcpData()));
-        }
-
-        // 每次到这里都重新进行连接
-        m_pTcpSocket->connectToHost(QHostAddress(m_qsConnectIPWithoutDLL), m_qsConnectPortWithoutDLL.toInt());
-        m_pTcpSocket->waitForConnected( 500 );
-
-        if (m_pTcpSocket->ConnectedState == QAbstractSocket::ConnectedState) {
-            BCCommon::g_bConnectStatusOK = true;
-        } else {
-            BCCommon::g_bConnectStatusOK = false;
-        }
-
-        //qDebug() << m_qsConnectIPWithoutDLL << m_qsConnectPortWithoutDLL << BCCommon::g_bConnectStatusOK;
     } else {
         // 设置的时候直接连接串口
         ConnectSerialPort();
@@ -287,16 +377,63 @@ void BCLocalServer::onRecvSerialData()
 {
     m_nHeartTimes = 0;
     BCCommon::g_bConnectStatusOK = true;
+
+    auto info = m_serial.readAll();
+    if (info.length() > 5 && info.at(0) == 0x06)
+    {
+        unsigned char hn = info.at(2);
+        unsigned char ln = info.at(3);
+        unsigned short len = (hn << 8) | ln;
+
+        unsigned char type = info.at(4);
+        if (0x00 == type)
+        {
+            // init success
+        }
+        else if (0x84 == type && len == 14)
+        {
+            // 规模
+            //0x06 0xFF 0x00 0x0E 0x84 0x00 0x04 0x02 0x03 0x20 0x02 0x58 xx xx
+            bool fullMode = (unsigned char)info.at(5) == 0x00;
+            unsigned short arrX = info.at(6);
+            unsigned short arrY = info.at(7);
+            unsigned char hw = info.at(8);
+            unsigned char lw = info.at(9);
+            unsigned short w = (hw << 8) | lw;
+
+            unsigned char hh = info.at(10);
+            unsigned char lh = info.at(11);
+            unsigned short h = (hh << 8) | lh;
+
+            // 有变化则更新配置文件并刷新教室
+            if (isUpdateRoomConfig(fullMode, arrX, arrY, w, h))
+            {
+                BCCommon::Application()->RefreshMainWindow();
+            }
+        }
+        else if (0x81 == type && len == 8)
+        {
+            // 0x06 0xFF 0x00 0x07 0x81 Value xx xx
+            _lightValue = info.at(5);
+        }
+        else if (0x82 == type && len == 10)
+        {
+            // 0x06 0xFF 0x00 0x0A 0x82 R G B xx xx
+            _rValue = info.at(5);
+            _gValue = info.at(6);
+            _bValue = info.at(7);
+        }
+        else if (0x83 == type && len == 8)
+        {
+            // 0x06 0xFF 0x00 0x08 0x83 value xx xx
+            _displayPower = (info.at(5) == 1);
+        }
+    }
 }
 
 void BCLocalServer::onRecvTcpData()
 {
-    // 只对2000起作用
-//    if ((1 == BCCommon::g_nDeviceType) || (2 == BCCommon::g_nDeviceType))
-//        return;
-
     m_nHeartTimes = 0;
-    //qDebug() << "recv ip " << m_nHeartTimes << "~~~~~~~~~~~~~";
 
     if ( !BCCommon::g_bConnectStatusOK ) {
         m_pTcpSocket->connectToHost(QHostAddress(m_qsConnectIPWithoutDLL), m_qsConnectPortWithoutDLL.toInt());
@@ -651,6 +788,74 @@ void BCLocalServer::UpdateRoomSwitchConfig(BCMRoom *room)
     file.close();
 }
 
+bool BCLocalServer::isUpdateRoomConfig(bool fullMode, int arrX, int arrY, int width, int height)
+{
+    QFile file( QString("../xml/BCRoomConfig.xml") );
+    if(!file.open(QIODevice::ReadOnly)){
+        return false;
+    }
+
+    // 将文件内容读到QDomDocument中
+    QDomDocument doc;
+    bool bLoadFile = doc.setContent(&file);
+    file.close();
+
+    if ( !bLoadFile )
+        return false;
+
+    // 二级链表
+    QDomElement docElem = doc.documentElement();
+    auto fmode = docElem.attribute("fullMode").toInt();
+    auto farrX = docElem.attribute("arrayX").toInt();
+    auto farrY = docElem.attribute("arrayY").toInt();
+    auto fwidth = docElem.attribute("width").toInt();
+    auto fheight = docElem.attribute("height").toInt();
+
+    if (fmode != (fullMode?1:0)
+            || farrX != arrX || farrY != arrY
+            || fwidth != width || fheight != height)
+    {
+        docElem.setAttribute("fullMode", QString::number(fullMode?1:0));
+        docElem.setAttribute("arrayX", QString::number(arrX));
+        docElem.setAttribute("arrayY", QString::number(arrY));
+        docElem.setAttribute("width", QString::number(width));
+        docElem.setAttribute("height", QString::number(height));
+
+        // 清空场景和输入通道
+        while (!docElem.childNodes().isEmpty())
+            docElem.removeChild(docElem.firstChild());
+
+        // 重新添加输入通道
+        auto count = arrX * arrY;
+        if (count > 0) {
+            auto eleCh = doc.createElement(QString("Channel"));
+
+            for (int i = 0; i < count; i++) {
+                auto eleNode = doc.createElement(QString("Node"));
+                eleNode.setAttribute("id", QString::number(i));
+                eleNode.setAttribute("name", QString("电脑%1").arg(i+1));
+
+                eleCh.appendChild(eleNode);
+            }
+
+            docElem.appendChild(eleCh);
+        }
+    }
+    else
+    {
+        return false;
+    }
+
+    // 写入文件
+    if( !file.open(QIODevice::WriteOnly | QIODevice::Truncate) )
+        return false;
+    QTextStream out(&file);
+    doc.save(out,4);
+    file.close();
+
+    return true;
+}
+
 void BCLocalServer::AddScreen(BCMWindowScene *screen)
 {
     QFile file( QString("../xml/BCRoomConfig.xml") );
@@ -858,6 +1063,73 @@ void BCLocalServer::UpdateInputChannel(int id, QString name)
     QTextStream out(&file);
     doc.save(out,4);
     file.close();
+}
+
+void BCLocalServer::updateFormatToDevice(bool fullMode, int arrX, int arrY, int width, int height)
+{
+    auto cmd = commandWithHeader();
+    // 0x48 0x55 0x41 0x52 0x59 0x43 0xFF
+    // 0x00 0x15 0x00 0x00 0x04 0x00 0x04 0x02 0x03 0x20 0x02 0x58 xx xx
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x15));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x04));
+
+    cmd.append(QChar(fullMode ? 0x00 : 0x01));
+    cmd.append(QChar((unsigned char)arrX));
+    cmd.append(QChar((unsigned char)arrY));
+
+    unsigned char hw = (unsigned short)width >> 8;
+    unsigned char lw = (unsigned short)width;
+    unsigned char hh = (unsigned short)height >> 8;
+    unsigned char lh = (unsigned short)height;
+    cmd.append(QChar(hw));
+    cmd.append(QChar(lw));
+    cmd.append(QChar(hh));
+    cmd.append(QChar(lh));
+
+    SendCmd(cmd);
+}
+
+void BCLocalServer::updateLightToDevice(int value)
+{
+    _lightValue = value;
+
+    auto cmd = commandWithHeader();
+    // 0x48 0x55 0x41 0x52 0x59 0x43 0xFF
+    // 0x00 0x0F 0x00 0x00 0x01 Value xx xx
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x0F));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x01));
+
+    cmd.append(QChar((unsigned char)value));
+
+    SendCmd(cmd);
+}
+
+void BCLocalServer::updateColorToDevice(int r, int g, int b)
+{
+    _rValue = r;
+    _gValue = g;
+    _bValue = b;
+
+    auto cmd = commandWithHeader();
+    // 0x48 0x55 0x41 0x52 0x59 0x43 0xFF
+    // 0x00 0x12 0x00 0x00 0x02 R G B xx xx
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x12));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x02));
+
+    cmd.append(QChar((unsigned char)r));
+    cmd.append(QChar((unsigned char)g));
+    cmd.append(QChar((unsigned char)b));
+
+    SendCmd(cmd);
 }
 
 QList<sMatrix> BCLocalServer::GetMatrixConfig()
@@ -1845,169 +2117,98 @@ void BCLocalServer::reset(const QString &qsGroupDisplayIDs)
     SendCmd( cmd );
 }
 
-void BCLocalServer::winsize(int gid, int chid, int winid, int l, int t, int r, int b, int type, int copyIndex)
+void BCLocalServer::winsize(int /*gid*/, int chid, int winid, int l, int t, int r, int b, int /*type*/, int /*copyIndex*/)
 {
-    // 如果是演示模式直接返回
-    if (0 == m_nIsDemoMode)
-        return;
+    auto cmd = commandWithHeader();
+    // 开窗1000*800, 使用的信号源是2，窗口序号是3
+    // 0x48 0x55 0x41 0x52 0x59 0x43 0xFF
+    // 0x00 0x18 0x00 0x00 0x06
+    // 0x02 0x03 0x00 0x00 0x00 0x00 0x03 0xE8 0x03 0x20 xx xx
 
-    // 添加偏移量
-    MainWindow *pMainWindow = BCCommon::Application();
-    QSize size = pMainWindow->GetWinsizeOffset( gid );
-    l += size.width();
-    r += size.width();
-    t += size.height();
-    b += size.height();
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x18));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x06));
 
-    QString cmd;
-    if ((BCCommon::g_nDeviceType == 1) || (BCCommon::g_nDeviceType == 2)) { // VP2000A, VP4000
-        cmd = QString("gwinsize %1 %2 %3 %4 %5 %6 %7\r\n")
-            .arg(gid)
-            .arg(winid)
-            .arg(chid)
-            .arg(l)
-            .arg(t)
-            .arg(r)
-            .arg(b);
-    } else if (BCCommon::g_nDeviceType == 0) {  // VP2000
-        if (-1 == copyIndex) {  // 没有子窗口则正常开窗
-            QString qsHeader;
-            if (0 == type)
-                qsHeader = "Dwinsize";
-            else if (3 == type)
-                qsHeader = "Vwinsize";
-            else if (2 == type)
-                qsHeader = "Bwinsize";
+    cmd.append(QChar((unsigned char)chid));
+    cmd.append(QChar((unsigned char)winid));
 
-            cmd = QString("%1 %2 %3 %4 %5 %6\r\n")
-                    .arg( qsHeader )
-                    .arg( chid )
-                    .arg(l)
-                    .arg(t)
-                    .arg(r)
-                    .arg(b);
-        } else { // 有子窗口则复制开窗
-            type = (3 == type) ? 1 : type;  // VP2000的类型3是video
-            cmd = QString("Cwinsize %1 %2 %3 %4 %5 %6 %7\r\n")
-                    .arg( type )
-                    .arg( chid )
-                    .arg( copyIndex )
-                    .arg(l)
-                    .arg(t)
-                    .arg(r)
-                    .arg(b);
-        }
-    }
+    unsigned char hl = (unsigned short)l >> 8;
+    unsigned char ll = (unsigned short)l;
+    cmd.append(QChar((unsigned char)hl));
+    cmd.append(QChar((unsigned char)ll));
 
-    SendCmd( cmd );
+    unsigned char ht = (unsigned short)t >> 8;
+    unsigned char lt = (unsigned short)t;
+    cmd.append(QChar((unsigned char)ht));
+    cmd.append(QChar((unsigned char)lt));
+
+    unsigned char hw = (unsigned short)(r-l) >> 8;
+    unsigned char lw = (unsigned short)(r-l);
+    cmd.append(QChar((unsigned char)hw));
+    cmd.append(QChar((unsigned char)lw));
+
+    unsigned char hh = (unsigned short)(b-t) >> 8;
+    unsigned char lh = (unsigned short)(b-t);
+    cmd.append(QChar((unsigned char)hh));
+    cmd.append(QChar((unsigned char)lh));
+
+    SendCmd(cmd);
 }
 
-void BCLocalServer::winswitch(int gid, int winid, int chid, int type, int copyIndex)
+void BCLocalServer::winswitch(int /*gid*/, int winid, int chid, int /*type*/, int /*copyIndex*/)
 {
-    // 如果是演示模式直接返回
-    if (0 == m_nIsDemoMode)
-        return;
+    auto cmd = commandWithHeader();
+    // 关窗, 使用的信号源是2，窗口序号是3
+    // 0x48 0x55 0x41 0x52 0x59 0x43 0xFF
+    // 0x00 0x10 0x00 0x00 0x08
+    // 0x02 0x03 xx xx
 
-    QString cmd;
-    if ((BCCommon::g_nDeviceType == 1) || (BCCommon::g_nDeviceType == 2)) { // VP2000A, VP4000
-        cmd = QString("gwinswitch %1 %2\r\n")
-                .arg(gid)
-                .arg(winid);
-    } else if (BCCommon::g_nDeviceType == 0) { // VP2000
-        if (-1 == copyIndex) {  // 没有子窗口则正常开窗
-            QString qsHeader;
-            if (0 == type)
-                qsHeader = "Dwinswitch";
-            else if (3 == type)
-                qsHeader = "Vwinswitch";
-            else if (2 == type)
-                qsHeader = "Bwinswitch";
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x10));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x08));
 
-            cmd = QString("%1 %2\r\n")
-                    .arg( qsHeader )
-                    .arg( chid );
-        } else {
-            type = (3 == type) ? 1 : type;
-            cmd = QString("wincopyswitch %1 %2 %3\r\n")
-                    .arg( type )
-                    .arg( chid )
-                    .arg( copyIndex );
-        }
-    }
+    cmd.append(QChar((unsigned char)chid));
+    cmd.append(QChar((unsigned char)winid));
 
-    SendCmd( cmd );
+    SendCmd(cmd);
 }
 
-void BCLocalServer::save(int groupID, int sceneID)
+void BCLocalServer::save(int /*groupID*/, int sceneID)
 {
-    // 如果是演示模式直接返回
-    if (0 == m_nIsDemoMode)
-        return;
+    auto cmd = commandWithHeader();
+    // 保存场景
+    // 0x48 0x55 0x41 0x52 0x59 0x43 0xFF
+    // 0x00 0x0F 0x00 0x00 0x07 0x03 xx xx
 
-    QString cmd;
-    if ((BCCommon::g_nDeviceType == 1) || (BCCommon::g_nDeviceType == 2)) { // VP2000A, VP4000
-        cmd = QString("gsave %1 %2\r\n")
-                .arg(groupID)
-                .arg(sceneID);
-    } else if (BCCommon::g_nDeviceType == 0) {  // VP2000
-        cmd = QString("save %1\r\n").arg(sceneID);
-    }
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x0F));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x07));
+    cmd.append(QChar((unsigned char)sceneID));
 
-    SendCmd( cmd );
+    SendCmd(cmd);
 }
 
-void BCLocalServer::load(int groupID, int sceneID)
+void BCLocalServer::load(int /*groupID*/, int sceneID)
 {
-    // 如果是演示模式直接返回
-    if (0 == m_nIsDemoMode)
-        return;
+    auto cmd = commandWithHeader();
+    // 保存场景
+    // 0x48 0x55 0x41 0x52 0x59 0x43 0xFF
+    // 0x00 0x0F 0x00 0x00 0x09 0x03 xx xx
 
-    QString cmd;
-    if ((BCCommon::g_nDeviceType == 1) || (BCCommon::g_nDeviceType == 2)) { // VP2000A, VP4000
-        cmd = QString("gload %1 %2\r\n")
-                .arg(groupID)
-                .arg(sceneID);
-    } else if (BCCommon::g_nDeviceType == 0) {  // VP2000
-        cmd = QString("load %1\r\n").arg(sceneID);
-    }
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x0F));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x09));
+    cmd.append(QChar((unsigned char)sceneID));
 
-    SendCmd( cmd );
-}
-
-void BCLocalServer::winup(int gid, int winid)
-{
-    // 如果是演示模式直接返回
-    if (0 == m_nIsDemoMode)
-        return;
-
-    QString cmd;
-    if ((BCCommon::g_nDeviceType == 1) || (BCCommon::g_nDeviceType == 2)) { // VP2000A, VP4000
-        cmd = QString("winup %1 %2\r\n")
-                .arg(gid)
-                .arg(winid);
-    } else if (BCCommon::g_nDeviceType == 0) {  // VP2000
-        //cmd = QString("load %1\r\n").arg(sceneID);
-    }
-
-    SendCmd( cmd );
-}
-
-void BCLocalServer::windown(int gid, int winid)
-{
-    // 如果是演示模式直接返回
-    if (0 == m_nIsDemoMode)
-        return;
-
-    QString cmd;
-    if ((BCCommon::g_nDeviceType == 1) || (BCCommon::g_nDeviceType == 2)) { // VP2000A, VP4000
-        cmd = QString("windown %1 %2\r\n")
-                .arg(gid)
-                .arg(winid);
-    } else if (BCCommon::g_nDeviceType == 0) {  // VP2000
-        //cmd = QString("load %1\r\n").arg(sceneID);
-    }
-
-    SendCmd( cmd );
+    SendCmd(cmd);
 }
 
 bool BCLocalServer::isFullScreenMode()
@@ -2026,149 +2227,6 @@ void BCLocalServer::onDelaySendCmd()
         return;
 
     SendCmd( m_lstDelayCmd.takeFirst() );
-}
-
-void BCLocalServer::SetRstGroup()
-{
-    // 如果是演示模式直接返回
-    if (0 == m_nIsDemoMode)
-        return;
-
-    SendCmd( QString("rstgroup\r\n") );
-}
-QString BCLocalServer::GetRstGroup()
-{
-    return QString("rstgroup\r\n");
-}
-void BCLocalServer::SetGroup(int gid, int schid, int echid)
-{
-    // 如果是演示模式直接返回
-    if (0 == m_nIsDemoMode)
-        return;
-
-    QString cmd = QString("setgroup %1 %2 %3\r\n").arg(gid).arg(schid).arg(echid);
-
-    SendCmd( cmd );
-}
-QString BCLocalServer::GetGroup(int gid, int schid, int echid)
-{
-    QString cmd = QString("setgroup %1 %2 %3\r\n").arg(gid).arg(schid).arg(echid);
-
-    return cmd;
-}
-
-void BCLocalServer::RemoveGroup(int gid)
-{
-    // 如果是演示模式直接返回
-    if (0 == m_nIsDemoMode)
-        return;
-
-    QString cmd = QString("setgroup %1 255\r\n").arg(gid);
-
-    SendCmd( cmd );
-}
-
-void BCLocalServer::SetCustomResolution(int liveW, int liveH, int preW, int preH, int syncW, int syncH, int totalW, int totalH, int /*polarityW*/, int /*polarityH*/, int hertz)
-{
-    // 如果是演示模式直接返回
-    if (0 == m_nIsDemoMode)
-        return;
-
-    QString cmd = QString("newddcmodetype 8 %1 %2 %3 %4 %5 %6 %7 %8 %9 %10\r\n")
-            .arg(preW).arg(totalW-liveW-preW-syncW).arg(syncW).arg(liveW)
-            .arg(preH).arg(totalH-liveH-preH-syncH).arg(syncH).arg(liveH)
-            .arg(0).arg(hertz);
-
-    SendCmd( cmd );
-}
-QString BCLocalServer::GetCustomResolution(int liveW, int liveH, int preW, int preH, int syncW, int syncH, int totalW, int totalH, int /*polarityW*/, int /*polarityH*/, int hertz)
-{
-    QString cmd = QString("newddcmodetype 8 %1 %2 %3 %4 %5 %6 %7 %8 %9 %10\r\n")
-            .arg(preW).arg(totalW-liveW-preW-syncW).arg(syncW).arg(liveW)
-            .arg(preH).arg(totalH-liveH-preH-syncH).arg(syncH).arg(liveH)
-            .arg(0).arg(hertz);
-
-    return cmd;
-}
-void BCLocalServer::SetResolution(int schid, int echid, int resolution)
-{
-    // 如果是演示模式直接返回
-    if (0 == m_nIsDemoMode)
-        return;
-
-    QString cmd;
-    if ((BCCommon::g_nDeviceType == 1) || (BCCommon::g_nDeviceType == 2)) { // VP2000A, VP4000
-        cmd = QString("resolution %1 %2 %3\r\n").arg(schid).arg(echid).arg(resolution);
-    } else {
-        switch ( resolution ) { // VP2000分辨率和VP4000有差异
-        case 0: // 1920*1080
-            resolution = 3;
-            break;
-        case 1: // 1400*1050
-            resolution = 2;
-            break;
-        case 2: // 1366*768
-            resolution = 1;
-            break;
-        default:// 1024*768
-            resolution = 0;
-            break;
-        }
-        cmd = QString("resolution %1\r\n").arg(resolution);
-    }
-
-    SendCmd( cmd );
-}
-QString BCLocalServer::GetResolution(int schid, int echid, int resolution)
-{
-    QString cmd;
-    if ((BCCommon::g_nDeviceType == 1) || (BCCommon::g_nDeviceType == 2)) { // VP2000A, VP4000
-        cmd = QString("resolution %1 %2 %3\r\n").arg(schid).arg(echid).arg(resolution);
-    } else {
-        switch ( resolution ) { // VP2000分辨率和VP4000有差异
-        case 0: // 1920*1080
-            resolution = 3;
-            break;
-        case 1: // 1400*1050
-            resolution = 2;
-            break;
-        case 2: // 1366*768
-            resolution = 1;
-            break;
-        default:// 1024*768
-            resolution = 0;
-            break;
-        }
-        cmd = QString("resolution %1\r\n").arg(resolution);
-    }
-
-    return cmd;
-}
-void BCLocalServer::SetGFormartxy(int gid, int x, int y, int resolutionX, int resolutionY)
-{
-    // 如果是演示模式直接返回
-    if (0 == m_nIsDemoMode)
-        return;
-
-    QString cmd;
-    if ((BCCommon::g_nDeviceType == 1) || (BCCommon::g_nDeviceType == 2)) { // VP2000A, VP4000
-        cmd = QString("setgformatxy %1 %2 %3 %4 %5\r\n").arg(gid).arg(x).arg(y).arg(resolutionX).arg(resolutionY);
-    } else if (BCCommon::g_nDeviceType == 0) {   // VP2000
-        cmd = QString("setformatxy %1 %2 %3 %4\r\n").arg(x).arg(y).arg(resolutionX).arg(resolutionY);
-    }
-
-    SendCmd( cmd );
-}
-QString BCLocalServer::GetGFormartxy(int gid, int x, int y, int resolutionX, int resolutionY)
-{
-    QString cmd;
-    if ((BCCommon::g_nDeviceType == 1) || (BCCommon::g_nDeviceType == 2)) { // VP2000A, VP4000
-        cmd = QString("setgformatxy %1 %2 %3 %4 %5\r\n").arg(gid).arg(x).arg(y).arg(resolutionX).arg(resolutionY);
-    } else if (BCCommon::g_nDeviceType == 0) {   // VP2000
-        cmd = QString("setformatxy %1 %2 %3 %4\r\n").arg(x).arg(y).arg(resolutionX).arg(resolutionY);
-    }
-
-    return cmd;
 }
 
 void BCLocalServer::SendCmd(const QString &cmd, bool bAddDebug)
@@ -2194,6 +2252,51 @@ void BCLocalServer::SendCmd(const QString &cmd, bool bAddDebug)
     }
 }
 
+void BCLocalServer::updateDisplayPowerToDevice(bool on)
+{
+    _displayPower = on;
+
+    auto cmd = commandWithHeader();
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x0F));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x00));
+    cmd.append(QChar(0x03));
+    cmd.append(QChar(on ? 0x01 : 0x00));
+
+    SendCmd(cmd);
+}
+
+void BCLocalServer::updateConfigFileToDevice(QByteArray ba)
+{
+    // 0x48 0x55 0x41 0x52 0x59 0x43 0xFF
+    // N1 N2 0x00 0x00 0x05 FileDate xx xx
+    auto cmd = commandWithHeader();
+
+    int len = (ba.size() % 1024) + 1;
+    for (int i = 0; i < len; i++)
+    {
+        auto singleCmd = cmd;
+
+        // 获取文件长度，单次最多发送1024
+        unsigned short filelen = (i == len-1) ? ba.size()/1024 : 1024;
+        // 添加指令部分长度
+        unsigned short cmdlen = filelen + 14;
+
+        cmd.append(QChar((unsigned char)(cmdlen>>8)));
+        cmd.append(QChar((unsigned char)cmdlen));
+
+        unsigned short index = i;
+        cmd.append(QChar((unsigned char)(index>>8)));
+        cmd.append(QChar((unsigned char)index));
+        cmd.append(QChar(0x05));
+
+        cmd.append(ba.mid(i*1024, filelen));
+
+        SendCmd(cmd);
+    }
+}
+
 void BCLocalServer::SendTcpData(const QString &cmd, int cmdLen)
 {
     // 判断是否包含汉字
@@ -2208,12 +2311,16 @@ void BCLocalServer::SendTcpData(const QString &cmd, int cmdLen)
 
 void BCLocalServer::SendSerialPortData(const QString &cmd)
 {
-    //qDebug() << "SERIAL: " << cmd;
     this->AddLog( "SERIAL: "+cmd );
     if ( !m_serial.isOpen() )
         return;
 
-    m_serial.write(cmd.toLatin1(), cmd.length());
+    // 添加校验后发送
+    auto endCmd = commandWithCheckout(cmd);
+
+    qInfo() << "device send serialport command: " << cmd;
+
+    m_serial.write(endCmd.toLatin1(), endCmd.length());
     m_serial.waitForBytesWritten( 50 );
     m_serial.flush();
 }

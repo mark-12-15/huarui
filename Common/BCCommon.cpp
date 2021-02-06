@@ -148,7 +148,7 @@ int BCCommon::g_nhdBeginID = 0;
 bool BCCommon::g_bContainsRemote = true;
 
 // 工程属性设置
-QString BCCommon::g_qsApplicationVersion = QString("V3.11.58 5.9-180815");
+QString BCCommon::g_qsApplicationVersion = QString("V3.11.58 5.9-2101 beta");
 //QString BCCommon::g_qsApplicationVersion = QString("  V5.2  ");
 QString BCCommon::g_qsApplicationTitle = QString("控制平台");
 QString BCCommon::g_qsApplicationCompany = QString("博睿科技");

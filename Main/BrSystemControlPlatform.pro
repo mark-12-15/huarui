@@ -47,7 +47,6 @@ SOURCES +=\
     ../View/BCRibbonMainToolBarAction.cpp \
     ../View/BCRibbonBar.cpp \
     ../View/BCSignalListWidgetData.cpp \
-    ../View/BCAutoDateDlg.cpp \
     ../View/BCSignalName.cpp \
     ../Setting/BCLoginDlg.cpp \
     ../Common/BCXMLManager.cpp \
@@ -124,7 +123,6 @@ HEADERS  += MainWindow.h \
     ../View/BCRibbonMainToolBarAction.h \
     ../View/BCRibbonBar.h \
     ../View/BCSignalListWidgetData.h \
-    ../View/BCAutoDateDlg.h \
     ../View/BCSignalName.h \
     ../Setting/BCLoginDlg.h \
     ../Common/BCXMLManager.h \
@@ -187,7 +185,6 @@ FORMS    += \
     ../View/BCWidgetBtn.ui \
     ../View/BCControl.ui \
     ../View/BCSignalListWidgetData.ui \
-    ../View/BCAutoDateDlg.ui \
     ../View/BCSignalName.ui \
     ../Setting/BCLoginDlg.ui \
     ../Setting/BCSettingDisplayInfoDlg.ui \

@@ -1,5 +1,6 @@
 #include "LightSettingDlg.h"
 #include "ui_LightSettingDlg.h"
+#include "BCLocalServer.h"
 
 LightSettingDlg::LightSettingDlg(QWidget *parent) :
     QDialog(parent),
@@ -9,7 +10,9 @@ LightSettingDlg::LightSettingDlg(QWidget *parent) :
 
     // init by device
     connect(ui->horizontalSlider, &QSlider::valueChanged, this, &LightSettingDlg::sliderValueChanged);
-    ui->horizontalSlider->setValue(20);
+
+    ui->lineEdit->setText(QString::number(BCLocalServer::Application()->_lightValue));
+    on_lineEdit_editingFinished();
 }
 
 LightSettingDlg::~LightSettingDlg()
@@ -47,6 +50,7 @@ void LightSettingDlg::on_pushButton_2_clicked()
 void LightSettingDlg::on_pushButton_clicked()
 {
     // send cmd
+    BCLocalServer::Application()->updateLightToDevice(ui->lineEdit->text().toInt());
 
     close();
 }

@@ -246,6 +246,7 @@ void BCMMatrix::SetCut(int nodeid, int l, int r, int t, int b)
 
 void BCMMatrix::SendCmd(const QString &cmd)
 {
+    qInfo() << "matrix send command: " << cmd;
     if ( isConnectByNet ) {
         ConnectDevice();
 

@@ -1,13 +1,12 @@
-<Node ip="" height="800" connectByNet="0" databit="8" stream="None" stopbit="1" arrayX="3" width="1000" port="0" off="cmdoff" com="COM4" fullMode="0" checkbit="None" rate="57600" arrayY="3" type="0" name="room" on="cmdon">
+<Node port="0" on="cmdon" arrayX="4" name="room" fullMode="0" width="800" type="0" databit="8" height="600" connectByNet="0" com="COM4" stopbit="1" arrayY="2" checkbit="None" rate="57600" off="cmdoff" ip="" stream="None">
     <Channel>
-        <Node id="0" name="电脑1"/>
-        <Node id="1" name="电脑2"/>
-        <Node id="2" name="电脑3"/>
-        <Node id="3" name="电脑4"/>
-        <Node id="4" name="电脑5"/>
-        <Node id="5" name="电脑6"/>
-        <Node id="6" name="电脑7"/>
-        <Node id="7" name="电脑8"/>
-        <Node id="8" name="电脑9"/>
+        <Node name="电脑1" id="0"/>
+        <Node name="电脑2" id="1"/>
+        <Node name="电脑3" id="2"/>
+        <Node name="电脑4" id="3"/>
+        <Node name="电脑5" id="4"/>
+        <Node name="电脑6" id="5"/>
+        <Node name="电脑7" id="6"/>
+        <Node name="电脑8" id="7"/>
     </Channel>
 </Node>

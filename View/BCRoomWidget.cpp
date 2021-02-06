@@ -359,7 +359,7 @@ bool BCRoomMainWidget::SetSignalWindowTop(BCSignalWindowDisplayWidget *pItem)
     if ( !BCCommon::g_bConnectWithServer ) {
         if (iCurrent != m_lstSignalWindow.count()-1) {
             BCLocalServer *pServer = BCLocalServer::Application();
-            pServer->winup(m_pMRoom->GetRoomID(), pItem->GetWindowID());
+            //pServer->winup(m_pMRoom->GetRoomID(), pItem->GetWindowID());
             //pItem->Winsize( false );
         }
     }
@@ -406,7 +406,7 @@ bool BCRoomMainWidget::SetSignalWindowBottom(BCSignalWindowDisplayWidget *pItem)
 
     // 置底需要所有窗口都重新发送一遍指令
     BCLocalServer *pServer = BCLocalServer::Application();
-    pServer->windown(m_pMRoom->GetRoomID(), pItem->GetWindowID());
+    //pServer->windown(m_pMRoom->GetRoomID(), pItem->GetWindowID());
 //    for (int i = 0; i < m_lstSignalWindow.count(); i++) {
 //        pItem = m_lstSignalWindow.at( i );
 //        pItem->Winsize( false );

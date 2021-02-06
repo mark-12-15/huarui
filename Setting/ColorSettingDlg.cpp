@@ -1,5 +1,6 @@
 #include "ColorSettingDlg.h"
 #include "ui_ColorSettingDlg.h"
+#include "BCLocalServer.h"
 
 ColorSettingDlg::ColorSettingDlg(QWidget *parent) :
     QDialog(parent),
@@ -12,9 +13,13 @@ ColorSettingDlg::ColorSettingDlg(QWidget *parent) :
     connect(ui->sliderG, &QSlider::valueChanged, this, &ColorSettingDlg::sliderValueGChanged);
     connect(ui->sliderB, &QSlider::valueChanged, this, &ColorSettingDlg::sliderValueBChanged);
 
-    ui->sliderR->setValue(20);
-    ui->sliderG->setValue(20);
-    ui->sliderB->setValue(20);
+    ui->lineEditR->setText(QString::number(BCLocalServer::Application()->_rValue));
+    ui->lineEditG->setText(QString::number(BCLocalServer::Application()->_bValue));
+    ui->lineEditB->setText(QString::number(BCLocalServer::Application()->_gValue));
+
+    on_lineEditR_editingFinished();
+    on_lineEditG_editingFinished();
+    on_lineEditB_editingFinished();
 }
 
 ColorSettingDlg::~ColorSettingDlg()
@@ -96,6 +101,9 @@ void ColorSettingDlg::on_pushButton_2_clicked()
 void ColorSettingDlg::on_pushButton_clicked()
 {
     // send cmd
+    BCLocalServer::Application()->updateColorToDevice(ui->lineEditR->text().toInt(),
+                                                      ui->lineEditG->text().toInt(),
+                                                      ui->lineEditB->text().toInt());
 
     close();
 }
