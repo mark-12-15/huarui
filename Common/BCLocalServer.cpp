@@ -95,7 +95,12 @@ uint16_t Cal_CRC16(const uint8_t* data, uint32_t size)
 QString BCLocalServer::commandWithCheckout(const QString &cmd)
 {
     auto res = cmd;
-    unsigned short c = Cal_CRC16((uint8_t *)cmd.toStdString().c_str(), cmd.length());
+    uint8_t buffer[cmd.length()];
+    for (int i = 0; i < cmd.length(); i++) {
+        buffer[i] = cmd.at(i).toLatin1();
+    }
+
+    unsigned short c = Cal_CRC16(buffer, cmd.length());
     res.append(QChar((unsigned char)(c>>8)));
     res.append(QChar((unsigned char)c));
     return res;
