@@ -135,6 +135,26 @@ void BCSingleDisplayWidget::resizeEvent(QResizeEvent *e)
     e->accept();
 }
 
+void BCSingleDisplayWidget::contextMenuEvent(QContextMenuEvent *e)
+{
+    // 构造菜单
+    QMenu menu;
+    BCCommon::SetSystemFont( &menu );
+
+    QAction *pAttribute = menu.addAction(QIcon(BCCommon::g_qsImageFilePrefix+BCCommon::g_qsApplicationStyle+"/"+BCCommon::g_qsSignalWindowMenuActionAttributeIconPath), QObject::tr("设置序列"));
+
+    // 返回选择的action
+    QAction *pSelectedAction = menu.exec( this->mapToGlobal(e->pos()) );
+    if (NULL != pSelectedAction) {
+        // 属性
+        if (pSelectedAction == pAttribute) {
+            //SetSignalWindowProperty();
+        }
+    }
+
+    e->accept();
+}
+
 void BCSingleDisplayWidget::paintEvent(QPaintEvent */*e*/)
 {
     QPainter painter(this);

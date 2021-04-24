@@ -14,8 +14,8 @@ ColorSettingDlg::ColorSettingDlg(QWidget *parent) :
     connect(ui->sliderB, &QSlider::valueChanged, this, &ColorSettingDlg::sliderValueBChanged);
 
     ui->lineEditR->setText(QString::number(BCLocalServer::Application()->_rValue));
-    ui->lineEditG->setText(QString::number(BCLocalServer::Application()->_bValue));
-    ui->lineEditB->setText(QString::number(BCLocalServer::Application()->_gValue));
+    ui->lineEditG->setText(QString::number(BCLocalServer::Application()->_gValue));
+    ui->lineEditB->setText(QString::number(BCLocalServer::Application()->_bValue));
 
     on_lineEditR_editingFinished();
     on_lineEditG_editingFinished();

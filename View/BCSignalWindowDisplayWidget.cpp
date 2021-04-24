@@ -472,10 +472,14 @@ void BCSignalWindowDisplayWidget::Winsize()
             matrix->SetSwitch(m_pInputChannel->GetChannelID(), id);
 
             // 拼接开窗 map.value
-            auto rect = map.value(id);
-            BCLocalServer::Application()->winsize(0, m_pInputChannel->GetChannelID(), m_nWindowID,
-                                                  rect.left(), rect.top(), rect.right(), rect.bottom(), 0, 0);
+//            auto rect = map.value(id);
+//            BCLocalServer::Application()->winsize(0, m_pInputChannel->GetChannelID(), m_nWindowID,
+//                                                  rect.left(), rect.top(), rect.right(), rect.bottom(), 0, 0);
         }
+
+
+        BCLocalServer::Application()->winsize(0, m_pInputChannel->GetChannelID(), m_nWindowID,
+                                              m_rectFact.left(), m_rectFact.top(), m_rectFact.right(), m_rectFact.bottom(), 0, 0);
     }
 }
 
@@ -628,7 +632,7 @@ void BCSignalWindowDisplayWidget::mouseMoveEvent(QMouseEvent * event)
             // 窗口管理类矩形框
             QRect parentRect = m_pSignalWindowMgr->rect();  // 父类坐标系坐标
 
-            bool bSendCmd = true;
+            bool bSendCmd = false;
 
             // 需要考虑缩放比例，需要考虑到拖动范围
             switch (m_eResizePos) {

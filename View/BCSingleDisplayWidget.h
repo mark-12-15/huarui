@@ -32,6 +32,9 @@ protected:
     void paintEvent(QPaintEvent *e);
     void resizeEvent(QResizeEvent *e);
 
+    // 菜单事件
+    void contextMenuEvent(QContextMenuEvent *e);
+
 private:
     Ui::BCSingleDisplayWidget *ui;
 

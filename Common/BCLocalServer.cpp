@@ -258,8 +258,8 @@ void BCLocalServer::updateCommunicationPara()
 void BCLocalServer::ConnectSerialPort()
 {
     if ( m_serial.isOpen() ) {
+        m_serial.close();
         BCCommon::g_bConnectStatusOK = true;
-        return;
     }
 
     connect(&m_serial, SIGNAL(readyRead()), this, SLOT(onRecvSerialData()));
@@ -294,16 +294,18 @@ void BCLocalServer::ConnectSerialPort()
     {
         updateCommunicationPara();
 
+        for (int i = 0; i < 5; i++) _commandAck[i] = 0;
+
+        // 需要分开发送
+
         // 初始化，获得当前规模、亮度值、RGB值
         SendCmd(initDeviceCommand());
 
-        SendCmd(formatCommand());
-        SendCmd(lightCommand());
-        SendCmd(colorCommand());
-        SendCmd(displayPowerCommand());
+//        SendCmd(formatCommand());
+//        SendCmd(lightCommand());
+//        SendCmd(colorCommand());
+//        SendCmd(displayPowerCommand());
     }
-
-    emit roomStateChanged();
 }
 
 void BCLocalServer::SetLoadDataOK()
@@ -393,7 +395,11 @@ void BCLocalServer::onRecvSerialData()
         unsigned char type = info.at(4);
         if (0x00 == type)
         {
-            // init success
+            // init success3
+            m_pOneSecondTimer->start();
+
+            _commandAck[0] = 1;
+            SendCmd(formatCommand());
         }
         else if (0x84 == type && len == 14)
         {
@@ -415,11 +421,17 @@ void BCLocalServer::onRecvSerialData()
             {
                 BCCommon::Application()->RefreshMainWindow();
             }
+
+            _commandAck[1] = 1;
+            SendCmd(lightCommand());
         }
         else if (0x81 == type && len == 8)
         {
             // 0x06 0xFF 0x00 0x07 0x81 Value xx xx
             _lightValue = info.at(5);
+
+            _commandAck[2] = 1;
+            SendCmd(colorCommand());
         }
         else if (0x82 == type && len == 10)
         {
@@ -427,11 +439,18 @@ void BCLocalServer::onRecvSerialData()
             _rValue = info.at(5);
             _gValue = info.at(6);
             _bValue = info.at(7);
+
+            _commandAck[3] = 1;
+            SendCmd(displayPowerCommand());
         }
         else if (0x83 == type && len == 8)
         {
             // 0x06 0xFF 0x00 0x08 0x83 value xx xx
             _displayPower = (info.at(5) == 1);
+
+            _commandAck[4] = 1;
+
+            emit roomStateChanged();
         }
     }
 }
@@ -2278,13 +2297,15 @@ void BCLocalServer::updateConfigFileToDevice(QByteArray ba)
     // N1 N2 0x00 0x00 0x05 FileDate xx xx
     auto cmd = commandWithHeader();
 
-    int len = (ba.size() % 1024) + 1;
+    const int singlePacketLen = 256;
+
+    int len = (ba.size() % singlePacketLen) + 1;
     for (int i = 0; i < len; i++)
     {
         auto singleCmd = cmd;
 
         // 获取文件长度，单次最多发送1024
-        unsigned short filelen = (i == len-1) ? ba.size()/1024 : 1024;
+        unsigned short filelen = (i == len-1) ? ba.size()/singlePacketLen : singlePacketLen;
         // 添加指令部分长度
         unsigned short cmdlen = filelen + 14;
 
@@ -2296,7 +2317,7 @@ void BCLocalServer::updateConfigFileToDevice(QByteArray ba)
         cmd.append(QChar((unsigned char)index));
         cmd.append(QChar(0x05));
 
-        cmd.append(ba.mid(i*1024, filelen));
+        cmd.append(ba.mid(i*singlePacketLen, filelen));
 
         SendCmd(cmd);
     }

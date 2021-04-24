@@ -536,6 +536,8 @@ private:
     QTime       m_timeOfPreview;        // 10ms内执行过指令则不发送心跳包
 
     QStringList m_lstDelayCmd;          // 延时发送的指令
+
+    int _commandAck[5];      // 是否收到回复
 };
 
 #endif // BCLOCALSERVER_H

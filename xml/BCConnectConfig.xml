@@ -1,1 +1,1 @@
-<BR CurrentDataBit="8" CurrentCheckBit="None" CurrentBaudRate="115200" CurrentCom="COM1" NetConnectWithDLL="0" CurrentStreamCtrl="None" ConnectPortWithoutDLL="8000" ConfigType="0" ConnectIPWithoutDLL="192.168.1.4" NetConnect="1" CurrentStopBit="1"/>
+<BR NetConnectWithDLL="0" CurrentStopBit="1" CurrentDataBit="8" CurrentCom="COM3" ConfigType="0" CurrentCheckBit="None" ConnectPortWithoutDLL="8000" NetConnect="1" ConnectIPWithoutDLL="192.168.1.4" CurrentBaudRate="115200" CurrentStreamCtrl="None"/>
