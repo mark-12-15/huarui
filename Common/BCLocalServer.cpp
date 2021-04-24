@@ -396,7 +396,7 @@ void BCLocalServer::onRecvSerialData()
         if (0x00 == type)
         {
             // init success3
-            m_pOneSecondTimer->start();
+            //m_pOneSecondTimer->start();
 
             _commandAck[0] = 1;
             SendCmd(formatCommand());
@@ -2297,15 +2297,15 @@ void BCLocalServer::updateConfigFileToDevice(QByteArray ba)
     // N1 N2 0x00 0x00 0x05 FileDate xx xx
     auto cmd = commandWithHeader();
 
-    const int singlePacketLen = 256;
+    const int singlePacketLen = 257;
 
-    int len = (ba.size() % singlePacketLen) + 1;
+    int len = (ba.size() / singlePacketLen) + 1;
     for (int i = 0; i < len; i++)
     {
         auto singleCmd = cmd;
 
         // 获取文件长度，单次最多发送1024
-        unsigned short filelen = (i == len-1) ? ba.size()/singlePacketLen : singlePacketLen;
+        unsigned short filelen = (i == len-1) ? ba.size()%singlePacketLen : singlePacketLen;
         // 添加指令部分长度
         unsigned short cmdlen = filelen + 14;
 
@@ -2317,9 +2317,15 @@ void BCLocalServer::updateConfigFileToDevice(QByteArray ba)
         cmd.append(QChar((unsigned char)index));
         cmd.append(QChar(0x05));
 
-        cmd.append(ba.mid(i*singlePacketLen, filelen));
+        for (int j = i*singlePacketLen; j < i*singlePacketLen+filelen; j++) {
+            cmd.append(ba.at(j));
+        }
+        //cmd.append(ba.mid(i*singlePacketLen, filelen));
 
+        qDebug() << "pack len: " << cmd.length() << ", index: " << i;
         SendCmd(cmd);
+
+        cmd = commandWithHeader();
     }
 }
 
